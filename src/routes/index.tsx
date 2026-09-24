@@ -36,9 +36,9 @@ export const Route = createFileRoute("/")({
 });
 
 const proof = [
-  { label: "24/7 automated follow-up", note: "Inquiries answered outside office hours" },
-  { label: "<60s target first response", note: "The window that keeps you in the running" },
-  { label: "1 simple automation plan", note: "Five steps, in order, no jargon" },
+  { label: "Missed calls", note: "Find where unanswered inquiries can leak out" },
+  { label: "Response speed", note: "See how quickly new inquiries get a response" },
+  { label: "Follow-up & booking", note: "Check what happens after the first contact" },
 ];
 
 function Index() {
@@ -74,7 +74,7 @@ function Index() {
         </div>
       </section>
 
-      {/* Proof strip */}
+      {/* What the audit checks */}
       <section className="border-b border-border">
         <div className="mx-auto grid max-w-5xl gap-px bg-border sm:grid-cols-3">
           {proof.map((p) => (
