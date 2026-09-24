@@ -6,10 +6,13 @@ const paths = [
   "/tool-match",
   "/guides",
   "/guides/missed-call-text-back",
+  "/guides/plumbers-missed-calls",
+  "/guides/hvac-missed-calls",
   "/guides/lead-follow-up-sequence",
   "/guides/hvac-automation",
   "/guides/plumbing-automation",
   "/guides/roofing-automation",
+  "/guides/quote-follow-up",
 ];
 
 export const Route = createFileRoute("/sitemap.xml")({
