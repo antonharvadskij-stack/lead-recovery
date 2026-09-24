@@ -1,5 +1,16 @@
 export const guides = [
   {
+    to: "/guides/plumbers-missed-calls" as const,
+    title: "Plumbers: what to do about missed calls while you're on a job",
+    description: "A practical missed-call checklist for plumbing businesses and small teams.",
+  },
+  {
+    to: "/guides/hvac-missed-calls" as const,
+    title: "HVAC missed calls: find the leads that disappear while your team is busy",
+    description: "Measure response speed, ownership and booking after an HVAC call goes unanswered.",
+  },
+
+  {
     to: "/guides/missed-call-text-back" as const,
     title: "Missed-call text back, set up properly",
     description:
