@@ -42,6 +42,22 @@ function GuidesIndex() {
           Short, concrete write-ups on getting back to leads faster. No vendor pitch required —
           most of it you can set up with tools you already pay for.
         </p>
+        <div className="mt-8 rounded-2xl border border-border bg-surface p-6 sm:flex sm:items-center sm:justify-between sm:gap-6">
+          <div>
+            <h2 className="text-base font-semibold text-foreground">Want to find your own leak?</h2>
+            <p className="mt-1 text-sm text-muted-foreground">
+              Run the free 8-question audit before adding more lead volume.
+            </p>
+          </div>
+          <Link
+            to="/"
+            hash="audit"
+            className="mt-4 inline-flex shrink-0 rounded-xl bg-primary px-5 py-3 text-sm font-medium text-primary-foreground sm:mt-0"
+          >
+            Run the free audit →
+          </Link>
+        </div>
+
         <div className="mt-10 grid gap-4 sm:grid-cols-2">
           {guides.map((g) => (
             <Link
