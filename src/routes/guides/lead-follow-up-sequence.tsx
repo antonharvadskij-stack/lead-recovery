@@ -75,6 +75,15 @@ function Page() {
         </p>
       </GuideSection>
 
+      <GuideSection heading="Check the leak before adding more leads">
+        <p>
+          A useful diagnostic is to trace one inquiry from first contact to booked job: when it
+          arrived, when someone responded, when the quote was sent, and when the next follow-up
+          happened. If any handoff depends on someone remembering to do it, that is a process gap
+          worth fixing before buying more lead volume.
+        </p>
+      </GuideSection>
+
       <GuideSection heading="What to measure">
         <p>
           Count how many quotes enter the sequence, how many reply, and how many book. If replies
