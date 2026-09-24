@@ -1,26 +1,29 @@
-# Lead Recovery
+# Welcome to your Lovable project
 
-Free lead-loss audit for local service businesses.
+This project was built with [Lovable](https://lovable.dev).
 
-## Current status
+## Build with Lovable
 
-This repository is the independent source-of-truth for the Lead Recovery project. The public MVP is currently hosted separately while we migrate infrastructure away from a Lovable-only workflow.
+Open your project in the [Lovable editor](https://lovable.dev) and keep building.
 
-## Product hypothesis
+- **Ship faster**: describe what you want to build and Lovable handles the code.
+- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
+- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
 
-Help local service businesses identify where inquiries are lost: missed calls, slow response, weak follow-up, and unclear lead ownership. The audit should diagnose the problem first, then recommend relevant ways to address it.
+## Development
 
-## Principles
+Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
 
-- Validate demand before spending on development or advertising.
-- Prefer free distribution and organic discovery during validation.
-- Measure completed audits and downstream intent, not vanity traffic alone.
-- Never fabricate users, reviews, votes, or engagement.
-- Keep secrets and credentials out of the repository.
+```sh
+git clone <this-repository-url>
+cd <repository-name>
+npm i
+npm run dev
+```
 
-## Next steps
+## Built with
 
-1. Capture the current MVP source.
-2. Establish reproducible local development and deployment.
-3. Add analytics and search visibility instrumentation.
-4. Continue demand validation.
+- TanStack Start
+- TypeScript
+- React
+- Tailwind CSS
