@@ -1,4 +1,4 @@
-export const SITE = "https://leadrelay-ai.lovable.app";
+export const SITE = "https://leadrelay.lovable.app";
 
 export function pageLinks(path: string) {
   const href = `${SITE}${path}`;
