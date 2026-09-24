@@ -1,29 +1,47 @@
-# Welcome to your Lovable project
+# Lead Recovery
 
-This project was built with [Lovable](https://lovable.dev).
+Lead Recovery is a free audit tool for local service businesses. It helps identify where inbound inquiries can be lost through missed calls, slow response, weak follow-up, and unclear lead ownership.
 
-## Build with Lovable
+## Product hypothesis
 
-Open your project in the [Lovable editor](https://lovable.dev) and keep building.
+The project is intentionally positioned as a diagnostic layer rather than another AI receptionist. The audit identifies potential leakage points first; the product can then guide users toward relevant fixes and tools.
 
-- **Ship faster**: describe what you want to build and Lovable handles the code.
-- **Stay in sync**: connect the project to GitHub and every change made in Lovable is committed straight to your repository.
-- **Full ownership**: this code is yours. Push to your repository and your changes sync back into Lovable, ready for your next prompt.
+## Status
 
-## Development
+- Public MVP: hosted on Lovable while infrastructure is being migrated.
+- Source of truth: this GitHub repository.
+- Validation priority: completed audits and downstream intent, not vanity traffic.
+- Paid development and advertising: paused during demand validation.
 
-Prefer working locally? You need Node.js and npm — [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating).
+## Local development
 
-```sh
-git clone <this-repository-url>
-cd <repository-name>
-npm i
-npm run dev
+Requirements: Node.js 20+ or Bun.
+
+```bash
+git clone https://github.com/antonharvadskij-stack/lead-recovery.git
+cd lead-recovery
+bun install
+bun run dev
 ```
 
-## Built with
+For a production build:
 
-- TanStack Start
-- TypeScript
-- React
-- Tailwind CSS
+```bash
+bun run build
+```
+
+## Repository structure
+
+- `src/routes/` — application routes and SEO content
+- `src/components/` — reusable UI and audit components
+- `src/lib/` — audit, tracking, SEO, and utility logic
+- `public/` — static assets
+- `vite.config.ts` / `src/server.ts` — application/runtime configuration
+
+## Validation principles
+
+1. Prefer free distribution while validating demand.
+2. Measure real product use, not artificial engagement.
+3. Do not fabricate users, reviews, votes, or traffic.
+4. Keep secrets and credentials out of Git.
+5. Make changes reproducible and reviewable through commits.
