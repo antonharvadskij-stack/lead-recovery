@@ -13,4 +13,4 @@ Allow: /
 User-agent: *
 Allow: /
 
-Sitemap: https://leadrelay.lovable.app/sitemap.xml
+Sitemap: https://antonharvadskij-stack.github.io/lead-recovery/sitemap.xml
