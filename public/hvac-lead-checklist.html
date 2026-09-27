@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Free HVAC Lead Loss Checklist | Missed Calls & Follow-Up</title>
+<meta name="description" content="Find common lead leaks in an HVAC business with a free checklist.">
+<style>body{font-family:system-ui,-apple-system,sans-serif;max-width:780px;margin:40px auto;padding:0 20px;line-height:1.6;color:#17202a}h1{font-size:2.3rem;line-height:1.15}.card{border:1px solid #ddd;border-radius:14px;padding:20px;margin:18px 0}a,button{font-weight:600}button{padding:13px 18px;border:0;border-radius:8px;cursor:pointer}label{display:block;margin:12px 0}.muted{color:#667085}</style>
+</head><body>
+<p class="muted"><strong>LeadRelay AI</strong> · Free HVAC tool</p>
+<h1>Find Lead Leaks in Your HVAC Business</h1>
+<p>Use this free checklist to spot common lead leaks in a HVAC business: missed calls, slow responses, inconsistent follow-up and open estimates.</p>
+<div class="card"><strong>Check these four areas</strong><ul><li>Missed-call follow-up</li><li>Response process for new enquiries</li><li>Follow-up consistency</li><li>Open estimates</li></ul></div>
+<form id="f">
+<div class="card"><strong>1. Missed calls</strong><label><input type="radio" name="q1" value="1" required> Every missed call gets a prompt follow-up</label><label><input type="radio" name="q1" value="0"> Some missed calls may not get followed up</label></div>
+<div class="card"><strong>2. New enquiries</strong><label><input type="radio" name="q2" value="1" required> We have a defined response process</label><label><input type="radio" name="q2" value="0"> Response depends on who is available</label></div>
+<div class="card"><strong>3. Follow-up</strong><label><input type="radio" name="q3" value="1" required> Follow-ups are tracked to completion</label><label><input type="radio" name="q3" value="0"> Follow-up is mostly manual or inconsistent</label></div>
+<div class="card"><strong>4. Estimates</strong><label><input type="radio" name="q4" value="1" required> Open estimates have a defined follow-up cadence</label><label><input type="radio" name="q4" value="0"> Older estimates can go quiet</label></div>
+<button type="submit">Check My HVAC Lead Leaks</button>
+</form><div id="r" class="card" hidden></div>
+<p><a href="https://leadrelay-ai.lovable.app/?utm_source=hvac_checklist&utm_medium=referral&utm_campaign=free_audit">Run the full free LeadRelay Audit →</a></p>
+<p class="muted">This is a screening checklist, not a calculation of lost revenue.</p>
+<script>document.getElementById('f').addEventListener('submit',e=>{e.preventDefault();let s=[1,2,3,4].reduce((n,i)=>n+Number(new FormData(e.target).get('q'+i)),0),r=document.getElementById('r');r.hidden=false;r.innerHTML=s===4?'<strong>No obvious gaps found.</strong><br>Keep monitoring the process.':s>=2?'<strong>Some potential lead leaks are visible.</strong><br>Review the weak areas and run the full audit for a deeper check.':'<strong>Several potential lead leaks are visible.</strong><br>Start with missed-call handling and follow-up consistency, then run the full audit.';window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:'lead_checklist_completed',niche:'HVAC',score:s})});</script>
+</body></html>
