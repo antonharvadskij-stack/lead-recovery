@@ -2,29 +2,36 @@
 <html lang="en">
 <head>
 <meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Free Lead Loss Checklist for HVAC, Plumbing & Roofing</title>
-<meta name="description" content="A free five-minute checklist to find missed calls, slow responses and follow-up gaps in a local service business.">
+<title>Free Lead Loss Checklist | HVAC, Plumbing & Roofing</title>
+<meta name="description" content="Free 2-minute checklist to spot missed calls, slow responses, inconsistent follow-up and old estimates in a home-service business.">
+<meta property="og:title" content="Free Lead Loss Checklist">
+<meta property="og:description" content="Spot common lead leaks in HVAC, plumbing and roofing businesses in about two minutes.">
 <style>
-body{font-family:system-ui,-apple-system,sans-serif;max-width:760px;margin:40px auto;padding:0 20px;line-height:1.6;color:#17202a}
-h1{font-size:2.2rem;line-height:1.15} .card{border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}
-label{display:block;margin:12px 0} button{padding:12px 18px;border:0;border-radius:8px;cursor:pointer} #result{font-weight:600;margin-top:20px}
-small{color:#667}
+body{font-family:system-ui,-apple-system,sans-serif;max-width:780px;margin:36px auto;padding:0 20px;line-height:1.6;color:#17202a}h1{font-size:2.35rem;line-height:1.12;margin-bottom:10px}.muted{color:#667085}.card{border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}label{display:block;margin:12px 0}button{padding:13px 19px;border:0;border-radius:8px;cursor:pointer;font-weight:600}#result{margin-top:20px;padding:18px;border-radius:12px;border:1px solid #ddd;display:none}a{font-weight:600}ul{padding-left:22px}.cta{margin-top:20px}
 </style>
 </head>
 <body>
-<p><small>LeadRelay AI</small></p>
-<h1>How many leads could your business be losing?</h1>
-<p>Use this free checklist to spot common lead leaks in HVAC, plumbing and roofing businesses. No signup and no commitment.</p>
+<p class="muted"><strong>LeadRelay AI</strong> · Free tool</p>
+<h1>Find the lead leaks in your service business</h1>
+<p class="muted">A quick checklist for HVAC, plumbing and roofing businesses. No signup, no card, no sales call required.</p>
+<div class="card"><strong>What this checks</strong><ul><li>Missed-call follow-up</li><li>Response process for new enquiries</li><li>Follow-up consistency</li><li>Open estimates that may go quiet</li></ul></div>
 <form id="f">
 <div class="card"><strong>1. Missed calls</strong><label><input type="radio" name="q1" value="1" required> Every missed call gets a prompt follow-up</label><label><input type="radio" name="q1" value="0"> Some missed calls may not get followed up</label></div>
-<div class="card"><strong>2. Speed to new enquiries</strong><label><input type="radio" name="q2" value="1" required> We have a defined response process</label><label><input type="radio" name="q2" value="0"> Response depends on who is available</label></div>
-<div class="card"><strong>3. Follow-up consistency</strong><label><input type="radio" name="q3" value="1" required> Follow-ups are tracked to completion</label><label><input type="radio" name="q3" value="0"> Follow-up is mostly manual or inconsistent</label></div>
-<div class="card"><strong>4. Old estimates</strong><label><input type="radio" name="q4" value="1" required> Open estimates have a defined follow-up cadence</label><label><input type="radio" name="q4" value="0"> Older estimates can go quiet</label></div>
+<div class="card"><strong>2. New enquiries</strong><label><input type="radio" name="q2" value="1" required> We have a defined response process</label><label><input type="radio" name="q2" value="0"> Response depends on who is available</label></div>
+<div class="card"><strong>3. Follow-up</strong><label><input type="radio" name="q3" value="1" required> Follow-ups are tracked to completion</label><label><input type="radio" name="q3" value="0"> Follow-up is mostly manual or inconsistent</label></div>
+<div class="card"><strong>4. Estimates</strong><label><input type="radio" name="q4" value="1" required> Open estimates have a defined follow-up cadence</label><label><input type="radio" name="q4" value="0"> Older estimates can go quiet</label></div>
 <button type="submit">Check My Lead Leaks</button>
 </form>
 <div id="result"></div>
-<p><a href="https://leadrelay-ai.lovable.app/">Run the full free Lead Follow-Up Audit →</a></p>
+<div class="cta"><a href="https://leadrelay-ai.lovable.app/">Run the full free Lead Follow-Up Audit →</a></div>
+<p class="muted">Your checklist result is a screening signal, not a measurement of lost revenue. The full audit can look at the process in more detail.</p>
 <script>
-document.getElementById('f').addEventListener('submit',e=>{e.preventDefault();const s=[1,2,3,4].reduce((n,i)=>n+Number(new FormData(e.target).get('q'+i)),0);const r=document.getElementById('result');r.textContent=s===4?'Low visible leakage — keep monitoring your process.':s>=2?'Some lead leakage may be present — review the weak areas above.':'Several lead-leak risks are visible — consider running the full audit.';window.dispatchEvent(new CustomEvent('lead_checklist_completed',{detail:{score:s}}));});
+document.getElementById('f').addEventListener('submit',e=>{
+ e.preventDefault();
+ const s=[1,2,3,4].reduce((n,i)=>n+Number(new FormData(e.target).get('q'+i)),0);
+ const r=document.getElementById('result'); r.style.display='block';
+ r.innerHTML=s===4?'<strong>No obvious gaps in this checklist.</strong><br>Keep monitoring the process and verify that the process is followed consistently.':s>=2?'<strong>Some potential lead leaks are visible.</strong><br>Review the areas where you selected the second option, then run the full LeadRelay audit for a deeper check.':'<strong>Several potential lead leaks are visible.</strong><br>Start with missed-call handling and follow-up consistency, then run the full LeadRelay audit for a deeper check.';
+ window.dispatchEvent(new CustomEvent('lead_checklist_completed',{detail:{score:s}}));
+});
 </script>
 </body></html>
