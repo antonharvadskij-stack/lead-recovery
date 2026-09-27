@@ -3,7 +3,7 @@ on:
   push:
     branches: [main]
     paths:
-      - 'public/lead-loss-checklist.html'
+      - 'public/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 permissions:
@@ -26,7 +26,11 @@ jobs:
       - name: Prepare site
         run: |
           mkdir -p _site
-          cp public/lead-loss-checklist.html _site/index.html
+          cp -R public/. _site/
+          test -f _site/lead-loss-checklist.html
+          test -f _site/hvac-lead-checklist.html
+          test -f _site/plumbing-lead-checklist.html
+          test -f _site/roofing-lead-checklist.html
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
