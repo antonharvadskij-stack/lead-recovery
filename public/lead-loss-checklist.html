@@ -7,7 +7,7 @@
 <meta property="og:title" content="Free Lead Loss Checklist">
 <meta property="og:description" content="Spot common lead leaks in HVAC, plumbing and roofing businesses in about two minutes.">
 <style>
-body{font-family:system-ui,-apple-system,sans-serif;max-width:780px;margin:36px auto;padding:0 20px;line-height:1.6;color:#17202a}h1{font-size:2.35rem;line-height:1.12;margin-bottom:10px}.muted{color:#667085}.card{border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}label{display:block;margin:12px 0}button{padding:13px 19px;border:0;border-radius:8px;cursor:pointer;font-weight:600}#result{margin-top:20px;padding:18px;border-radius:12px;border:1px solid #ddd;display:none}a{font-weight:600}ul{padding-left:22px}.cta{margin-top:20px}
+body{font-family:system-ui,-apple-system,sans-serif;max-width:780px;margin:36px auto;padding:0 20px;line-height:1.6;color:#17202a}h1{font-size:2.35rem;line-height:1.12;margin-bottom:10px}.muted{color:#667085}.card{border:1px solid #ddd;border-radius:14px;padding:20px;margin:16px 0}label{display:block;margin:12px 0}button{padding:13px 19px;border:0;border-radius:8px;cursor:pointer;font-weight:600}#result{margin-top:20px;padding:18px;border-radius:12px;border:1px solid #ddd;display:none}a{font-weight:600}.cta{margin-top:20px}
 </style>
 </head>
 <body>
@@ -23,15 +23,17 @@ body{font-family:system-ui,-apple-system,sans-serif;max-width:780px;margin:36px 
 <button type="submit">Check My Lead Leaks</button>
 </form>
 <div id="result"></div>
-<div class="cta"><a href="https://leadrelay-ai.lovable.app/">Run the full free Lead Follow-Up Audit →</a></div>
+<div class="cta"><a id="auditLink" href="https://leadrelay-ai.lovable.app/?utm_source=lead_loss_checklist&utm_medium=referral&utm_campaign=free_audit">Run the full free Lead Follow-Up Audit →</a></div>
 <p class="muted">Your checklist result is a screening signal, not a measurement of lost revenue. The full audit can look at the process in more detail.</p>
 <script>
+const eventLog=(name,detail={})=>{window.dataLayer=window.dataLayer||[];window.dataLayer.push({event:name,...detail});try{sessionStorage.setItem('leadrelay_'+name,Date.now().toString())}catch(e){}};
 document.getElementById('f').addEventListener('submit',e=>{
  e.preventDefault();
  const s=[1,2,3,4].reduce((n,i)=>n+Number(new FormData(e.target).get('q'+i)),0);
  const r=document.getElementById('result'); r.style.display='block';
  r.innerHTML=s===4?'<strong>No obvious gaps in this checklist.</strong><br>Keep monitoring the process and verify that the process is followed consistently.':s>=2?'<strong>Some potential lead leaks are visible.</strong><br>Review the areas where you selected the second option, then run the full LeadRelay audit for a deeper check.':'<strong>Several potential lead leaks are visible.</strong><br>Start with missed-call handling and follow-up consistency, then run the full LeadRelay audit for a deeper check.';
- window.dispatchEvent(new CustomEvent('lead_checklist_completed',{detail:{score:s}}));
+ eventLog('lead_checklist_completed',{score:s});
 });
+document.getElementById('auditLink').addEventListener('click',()=>eventLog('lead_audit_cta_clicked'));
 </script>
 </body></html>
