@@ -1,9 +1,9 @@
-name: Deploy Lead Loss Checklist to GitHub Pages
+name: Deploy Neon Drop
 on:
   push:
     branches: [main]
     paths:
-      - 'public/**'
+      - 'game/**'
       - '.github/workflows/pages.yml'
   workflow_dispatch:
 permissions:
@@ -21,20 +21,10 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v4
-      - name: Configure Pages
-        uses: actions/configure-pages@v5
-      - name: Prepare site
-        run: |
-          mkdir -p _site
-          cp -R public/. _site/
-          test -f _site/lead-loss-checklist.html
-          test -f _site/hvac-lead-checklist.html
-          test -f _site/plumbing-lead-checklist.html
-          test -f _site/roofing-lead-checklist.html
-      - name: Upload artifact
-        uses: actions/upload-pages-artifact@v3
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
         with:
-          path: _site
+          path: './game'
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
