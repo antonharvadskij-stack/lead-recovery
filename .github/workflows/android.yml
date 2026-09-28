@@ -1,0 +1,31 @@
+name: Build Neon Drop Android APK
+on:
+  workflow_dispatch:
+  push:
+    paths:
+      - 'game/**'
+      - 'capacitor.config.json'
+      - '.github/workflows/android.yml'
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm init -y
+      - run: npm install @capacitor/core @capacitor/cli @capacitor/android
+      - run: rm -rf dist && mkdir dist && cp -r game/* dist/
+      - run: npx cap add android
+      - run: npx cap sync android
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: android-actions/setup-android@v3
+      - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug
+      - uses: actions/upload-artifact@v4
+        with:
+          name: neon-drop-debug-apk
+          path: android/app/build/outputs/apk/debug/app-debug.apk
