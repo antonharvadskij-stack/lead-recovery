@@ -1,0 +1,81 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1600 900">
+<defs>
+ <linearGradient id="sky" x2="0" y2="1"><stop stop-color="#173f67"/><stop offset=".55" stop-color="#f08b62"/><stop offset="1" stop-color="#ffd79a"/></linearGradient>
+ <linearGradient id="sea" x2="0" y2="1"><stop stop-color="#155b78"/><stop offset="1" stop-color="#062d48"/></linearGradient>
+ <linearGradient id="ground" x2="0" y2="1"><stop stop-color="#3b9b4f"/><stop offset="1" stop-color="#165735"/></linearGradient>
+ <linearGradient id="wood" x2="0" y2="1"><stop stop-color="#8a542f"/><stop offset="1" stop-color="#3f2419"/></linearGradient>
+ <linearGradient id="roof" x2="0" y2="1"><stop stop-color="#d35c39"/><stop offset="1" stop-color="#6d2825"/></linearGradient>
+ <filter id="glow"><feGaussianBlur stdDeviation="8" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+ <filter id="shadow"><feDropShadow dx="0" dy="14" stdDeviation="14" flood-opacity=".5"/></filter>
+ <pattern id="waves" width="100" height="36" patternUnits="userSpaceOnUse"><path d="M0 18 Q25 4 50 18 T100 18" fill="none" stroke="#7ed8e9" stroke-opacity=".18" stroke-width="3"/></pattern>
+</defs>
+<rect width="1600" height="900" fill="url(#sky)"/>
+<circle cx="1260" cy="170" r="92" fill="#fff1bb" opacity=".9" filter="url(#glow)"/>
+<!-- distant volcanic mountains -->
+<path d="M0 360 L220 175 330 290 470 120 650 335 825 210 960 330 1110 145 1300 335 1450 225 1600 350V520H0Z" fill="#17394d"/>
+<path d="M760 360 L930 85 1100 360Z" fill="#27383f"/>
+<path d="M850 265 L930 85 1010 265Z" fill="#3d4243"/>
+<path d="M895 205 L930 115 962 205Z" fill="#f05c36" opacity=".9"/>
+<!-- ocean -->
+<path d="M0 430 Q350 360 720 430 T1600 390V900H0Z" fill="url(#sea)"/>
+<path d="M0 430 Q350 360 720 430 T1600 390V900H0Z" fill="url(#waves)"/>
+<!-- main island -->
+<path d="M115 625 Q155 485 330 430 Q510 375 715 420 Q910 380 1115 470 Q1310 555 1375 700 Q1230 825 1030 840 Q800 890 555 850 Q310 820 150 750Z" fill="#d3aa63" filter="url(#shadow)"/>
+<path d="M145 620 Q205 500 350 460 Q540 410 710 450 Q900 410 1090 500 Q1260 560 1335 690 Q1200 785 1015 805 Q800 850 585 815 Q345 790 175 725Z" fill="url(#ground)"/>
+<!-- cliffs -->
+<path d="M1020 505 Q1160 535 1295 650 L1350 720 1260 748 1160 680Z" fill="#72563e"/>
+<path d="M1120 550 Q1220 590 1300 665 L1250 680 1170 625Z" fill="#b58b56"/>
+<!-- waterfall -->
+<path d="M665 250 Q710 300 735 390 L785 500 745 530 700 410 655 330Z" fill="#a9e9ef" opacity=".75" filter="url(#glow)"/>
+<path d="M700 390 Q760 405 805 505 Q770 540 735 530Z" fill="#e2fbff" opacity=".75"/>
+<!-- jungle clusters -->
+<g fill="#0e4b31">
+<circle cx="205" cy="570" r="72"/><circle cx="290" cy="500" r="66"/><circle cx="390" cy="485" r="72"/><circle cx="1110" cy="535" r="70"/><circle cx="1205" cy="600" r="82"/><circle cx="1180" cy="730" r="65"/><circle cx="440" cy="760" r="72"/><circle cx="330" cy="700" r="80"/>
+</g>
+<g fill="#247a43">
+<circle cx="180" cy="590" r="48"/><circle cx="285" cy="520" r="45"/><circle cx="385" cy="510" r="48"/><circle cx="1080" cy="550" r="48"/><circle cx="1200" cy="615" r="54"/><circle cx="1160" cy="715" r="48"/><circle cx="450" cy="750" r="48"/>
+</g>
+<!-- village -->
+<g filter="url(#shadow)">
+ <path d="M360 585 L475 525 590 585 590 700 360 700Z" fill="url(#wood)"/>
+ <path d="M340 585 L475 485 610 585 575 605 475 535 375 605Z" fill="url(#roof)"/>
+ <rect x="445" y="625" width="48" height="75" rx="5" fill="#2b1b18"/>
+ <rect x="515" y="605" width="35" height="32" fill="#ffd66b" filter="url(#glow)"/>
+ <path d="M250 650 L355 590 430 635 430 730 250 730Z" fill="#79502e"/>
+ <path d="M235 650 L350 575 445 640 410 658 350 615 275 665Z" fill="#a94135"/>
+ <path d="M560 650 L650 600 735 650 735 730 560 730Z" fill="#79502e"/>
+ <path d="M545 650 L650 580 750 650 715 668 650 615 580 668Z" fill="#a94135"/>
+</g>
+<!-- watchtower -->
+<g filter="url(#shadow)">
+ <path d="M700 625 L725 340 765 340 790 625Z" fill="#654128"/>
+ <path d="M690 365 L745 315 800 365Z" fill="#b44336"/>
+ <rect x="710" y="355" width="70" height="28" fill="#8d623c"/>
+ <path d="M735 285 L735 320" stroke="#ffe47b" stroke-width="8" filter="url(#glow)"/>
+ <path d="M748 330 L748 285" stroke="#4e83a8" stroke-width="20"/>
+</g>
+<!-- docks -->
+<path d="M1120 680 L1440 820" stroke="#7a4d2b" stroke-width="36" stroke-linecap="round"/>
+<path d="M1120 680 L1440 820" stroke="#c18a4c" stroke-width="18" stroke-linecap="round"/>
+<g filter="url(#shadow)">
+ <path d="M1260 645 L1390 710 1335 775 1205 710Z" fill="#7b4728"/>
+ <path d="M1280 650 L1350 520 1370 650Z" fill="#e8d8b7"/>
+ <path d="M1350 520 L1350 705" stroke="#5a3b29" stroke-width="12"/>
+</g>
+<!-- campfire -->
+<g filter="url(#glow)">
+ <ellipse cx="690" cy="730" rx="70" ry="28" fill="#ff6b24" opacity=".28"/>
+ <path d="M655 735 L690 675 725 735 Q690 765 655 735Z" fill="#ff7a22"/>
+ <path d="M670 735 L690 695 710 735 Q690 750 670 735Z" fill="#ffe36a"/>
+</g>
+<!-- trees -->
+<g>
+ <g transform="translate(180 720)"><rect x="-10" y="-95" width="20" height="95" fill="#5a3824"/><path d="M0-165 Q-75-125-38-75 Q-80-70-45-25 Q0-55 45-25 Q80-70 38-75 Q75-125 0-165Z" fill="#17643a"/></g>
+ <g transform="translate(1020 730)"><rect x="-10" y="-100" width="20" height="100" fill="#5a3824"/><path d="M0-170 Q-75-130-38-78 Q-80-72-45-28 Q0-58 45-28 Q80-72 38-78 Q75-130 0-170Z" fill="#1d6e3f"/></g>
+ <g transform="translate(1230 500)"><rect x="-9" y="-90" width="18" height="90" fill="#5a3824"/><path d="M0-155 Q-70-120-35-70 Q-75-65-40-20 Q0-50 40-20 Q75-65 35-70 Q70-120 0-155Z" fill="#236f3d"/></g>
+</g>
+<!-- foreground rocks -->
+<g fill="#435b5d"><path d="M70 810l55-65 90 20 25 75H70z"/><path d="M850 820l60-75 95 35 15 70z"/><path d="M1420 820l45-60 80 25 25 65z"/></g>
+<!-- fire torches -->
+<g fill="#ff8a2a" filter="url(#glow)"><circle cx="310" cy="620" r="9"/><circle cx="605" cy="625" r="9"/><circle cx="820" cy="585" r="9"/><circle cx="1050" cy="650" r="9"/></g>
+</svg>
