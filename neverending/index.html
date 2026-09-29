@@ -9,7 +9,6 @@ const t=performance.now()/1000;
 for(let i=0;i<34;i++){let x=((i*97+t*12)% (W+180))-90,y=((i*53+t*7)%H);g.strokeStyle='rgba(102,224,239,.12)';g.lineWidth=1.5;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+18,y-3,x+36,y);g.stroke()}
 if(worldArt.complete&&worldArt.naturalWidth){g.save();g.globalAlpha=.98;g.drawImage(worldArt,-px*.035,-pz*.02,W+px*.07,H+pz*.04);g.restore()}else{const sky=g.createLinearGradient(0,0,0,H);sky.addColorStop(0,'#071a2c');sky.addColorStop(.55,'#0b2b3a');sky.addColorStop(1,'#06121f');g.fillStyle=sky;g.fillRect(0,0,W,H)}
 // animated atmospheric particles and water highlights
-const t=performance.now()/1000;
 for(let i=0;i<28;i++){let x=((i*113+t*9)%(W+120))-60,y=((i*71+t*4)%H);g.strokeStyle='rgba(190,242,255,.16)';g.lineWidth=1.2;g.beginPath();g.moveTo(x,y);g.quadraticCurveTo(x+16,y-3,x+32,y);g.stroke()}
 g.fillStyle='rgba(255,245,200,.035)';g.fillRect(0,0,W,H);
 // zones
