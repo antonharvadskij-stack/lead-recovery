@@ -94,6 +94,49 @@ function drawWorldDecor(t){
   }
 }
 
+
+// --- character/enemy animation pass ---
+function drawHeroDetail(p,q,face,walk,t){
+  const step=Math.sin(t*10)*walk;
+  g.save(); g.translate(p.x,p.y);
+  // shadow
+  g.fillStyle='rgba(0,0,0,.34)';g.beginPath();g.ellipse(0,13*q,22*q,7*q,0,0,Math.PI*2);g.fill();
+  // legs
+  g.fillStyle='#26384b';g.fillRect((-10+step)*q,-12*q,8*q,28*q);g.fillRect((2-step)*q,-12*q,8*q,28*q);
+  // boots
+  g.fillStyle='#17212d';g.fillRect((-12+step)*q,12*q,11*q,5*q);g.fillRect((1-step)*q,12*q,11*q,5*q);
+  // coat
+  g.fillStyle='#38556c';g.beginPath();g.roundRect(-15*q,-48*q,30*q,40*q,7*q);g.fill();
+  g.fillStyle='#4f7890';g.fillRect(-11*q,-45*q,8*q,32*q);
+  // scarf
+  g.fillStyle='#e9b84e';g.fillRect(-13*q,-37*q,26*q,5*q);
+  // head
+  g.fillStyle='#efbd96';g.beginPath();g.arc(face*2*q,-61*q,14*q,0,Math.PI*2);g.fill();
+  // hair
+  g.fillStyle='#34251f';g.beginPath();g.arc(face*1*q,-67*q,15*q,Math.PI,Math.PI*2);g.fill();
+  // eye
+  g.fillStyle='#1c2730';g.fillRect((face*7-2)*q,-62*q,3*q,3*q);
+  // backpack
+  g.fillStyle='#6b4a32';g.fillRect(-20*q,-43*q,7*q,25*q);
+  // weapon
+  g.save();g.scale(face,1);g.strokeStyle='#dfe9ed';g.lineWidth=4*q;g.beginPath();g.moveTo(12*q,-31*q);g.lineTo(32*q,-43*q);g.stroke();g.restore();
+  g.restore();
+}
+function drawEnemyDetail(e,p,q,t){
+  const bob=Math.sin(t*7+e.x*.02)*1.5;
+  g.save();g.translate(p.x,p.y+bob*q);
+  g.fillStyle='rgba(0,0,0,.3)';g.beginPath();g.ellipse(0,5*q,18*q,6*q,0,0,Math.PI*2);g.fill();
+  g.fillStyle=e.boss?'#5c1828':'#642a31';g.beginPath();g.ellipse(0,-25*q,17*q,22*q,0,0,Math.PI*2);g.fill();
+  g.fillStyle=e.boss?'#9e3044':'#a74f43';g.beginPath();g.arc(0,-48*q,13*q,0,Math.PI*2);g.fill();
+  g.fillStyle='#f2d26b';g.fillRect(-8*q,-51*q,16*q,4*q);
+  g.fillStyle='#fff';g.fillRect(-7*q,-44*q,4*q,4*q);g.fillRect(3*q,-44*q,4*q,4*q);
+  g.fillStyle='#222';g.fillRect(-6*q,-43*q,2*q,2*q);g.fillRect(4*q,-43*q,2*q,2*q);
+  // horns
+  g.fillStyle='#d5a36d';g.beginPath();g.moveTo(-9*q,-57*q);g.lineTo(-15*q,-70*q);g.lineTo(-4*q,-61*q);g.fill();
+  g.beginPath();g.moveTo(9*q,-57*q);g.lineTo(15*q,-70*q);g.lineTo(4*q,-61*q);g.fill();
+  g.restore();
+}
+
 function draw(){
 g.clearRect(0,0,W,H);
 let q=Math.min(W,H)/700;
@@ -220,6 +263,9 @@ let pp=iso(px,pz),walk=Math.sin(t*9)*((Math.abs(m.x)+Math.abs(m.z))>.05?3:0),fac
 g.strokeStyle='#8dffd1';g.lineWidth=2;g.beginPath();g.arc(pp.x,pp.y+14*q,22*q,0,Math.PI*2);g.stroke();
 
 for(let i=0;i<46;i++){let gx=(i*83+Math.sin(t*.3+i)*18)%W,gy=H*.72+(i*37)%Math.max(40,H*.22);g.strokeStyle='rgba(116,203,105,.16)';g.lineWidth=1.2;g.beginPath();g.moveTo(gx,gy);g.quadraticCurveTo(gx-3,gy-8,gx-1,gy-14);g.moveTo(gx,gy);g.quadraticCurveTo(gx+4,gy-7,gx+5,gy-12);g.stroke()}
+
+drawHeroDetail(pp,q,face,Math.abs(Math.sin(t*9))>0.15?1:0,t);
+E.filter(e=>e.h>0).forEach(e=>drawEnemyDetail(e,iso(e.x,e.z),q,t));
 drawEffects(Math.min(.04,(performance.now()-last)/1000));
 drawWorldDecor(t);
 if(flash>0){g.fillStyle='rgba(255,255,255,'+flash+')';g.fillRect(0,0,W,H)}
