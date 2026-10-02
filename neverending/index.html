@@ -89,6 +89,10 @@ const world={w:3000,h:2200};
 const island={cx:0,cy:0,rx:1250,ry:860};
 const trees=[],rocks=[],enemies=[],loot=[],buildings=[];
 const ruins=[{x:-620,y:-180},{x:690,y:240},{x:430,y:470}];
+const treasures=[{x:-720,y:330,opened:false},{x:560,y:-420,opened:false},{x:820,y:360,opened:false}];
+const rareNodes=[{x:-430,y:-470,hp:3,alive:true},{x:480,y:420,hp:3,alive:true},{x:760,y:-90,hp:3,alive:true}];
+let islandZone='shore';
+
 
 const keys={};
 let joystick={x:0,y:0,active:false},last=performance.now(),night=0,missionTarget=10,missionStage=0,gameOver=false,saveTimer=0,ysdk=null;const particles=[],floaters=[];let worldTime=0,attackCooldown=0,cameraShake=0;
@@ -127,6 +131,8 @@ function drawIsland(){
   ctx.save();ctx.strokeStyle='rgba(235,210,143,.72)';ctx.lineWidth=18;ctx.beginPath();ctx.ellipse(sx(0),sy(-5),island.rx-32,island.ry-40,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(255,245,191,.34)';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(sx(0),sy(-8),island.rx-50,island.ry-58,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(174,220,133,.24)';ctx.lineWidth=10;for(let i=0;i<18;i++){const x=-720+i*82,y=180+Math.sin(i*1.7)*95;ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+35),sy(y-22),sx(x+75),sy(y-4));ctx.stroke()}ctx.restore();
   ctx.save();ctx.globalAlpha=.32;ctx.strokeStyle='#a9e1d7';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(sx(0),sy(17),island.rx+82,island.ry+72,0,0,Math.PI*2);ctx.stroke();ctx.restore();
 }
+function drawTreasures(){for(const t of treasures){if(t.opened)continue;const d=dist(t,player);const x=sx(t.x),y=sy(t.y);shadow(t.x,t.y+13,20,7,.25);ctx.save();ctx.translate(x,y);ctx.fillStyle='#8b542d';ctx.fillRect(-18,-12,36,25);ctx.fillStyle='#e6bd55';ctx.fillRect(-18,-4,36,6);ctx.fillStyle='#ffe28a';ctx.fillRect(-4,-13,8,26);if(d<75){ctx.fillStyle='#fff4b0';ctx.font='bold 13px system-ui';ctx.textAlign='center';ctx.fillText('СУНДУК',0,-25)}ctx.restore()}}
+function drawRareNodes(){for(const n of rareNodes){if(!n.alive)continue;const x=sx(n.x),y=sy(n.y);shadow(n.x,n.y+13,18,6,.2);const g=ctx.createRadialGradient(x-5,y-7,2,x,y,25);g.addColorStop(0,'#e6ffff');g.addColorStop(.3,'#55d4d8');g.addColorStop(1,'#166b75');ctx.fillStyle=g;ctx.beginPath();ctx.moveTo(x-20,y+10);ctx.lineTo(x-10,y-15);ctx.lineTo(x+1,y-24);ctx.lineTo(x+20,y-6);ctx.lineTo(x+12,y+14);ctx.closePath();ctx.fill()}}
 function drawRuins(){for(const r of ruins){const x=sx(r.x),y=sy(r.y);shadow(r.x,r.y+20,58,14,.3);ctx.save();ctx.translate(x,y);ctx.fillStyle='#596467';ctx.fillRect(-48,-8,96,14);ctx.fillRect(-38,-45,16,38);ctx.fillRect(20,-35,15,28);ctx.fillStyle='#303d42';ctx.fillRect(-28,-3,16,9);ctx.fillRect(8,-3,20,9);ctx.restore()}}
 function drawTree(t){
   shadow(t.x,t.y+30,34*t.s,12*t.s,.34);const x=sx(t.x),y=sy(t.y),s=t.s;ctx.save();ctx.translate(x,y);
@@ -169,7 +175,7 @@ function drawDecor(){
   ctx.restore();
 }
 function draw(){
-  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();drawRuins();
+  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();drawRuins();drawRareNodes();drawTreasures();
   const objs=[];
   trees.forEach(t=>objs.push({y:t.y,fn:()=>drawTree(t)}));rocks.forEach(r=>objs.push({y:r.y,fn:()=>drawRock(r)}));
   buildings.forEach(b=>objs.push({y:b.y,fn:()=>b.type==='hut'?drawHut(b):b.type==='tower'?drawTower(b):drawCamp(b)}));
@@ -194,8 +200,9 @@ function input(){
   let x=joystick.x,y=joystick.y;if(keys.w||keys.arrowup)y-=1;if(keys.s||keys.arrowdown)y+=1;if(keys.a||keys.arrowleft)x-=1;if(keys.d||keys.arrowright)x+=1;
   const m=Math.hypot(x,y);if(m>1){x/=m;y/=m}return {x,y,m:Math.min(1,m)}
 }
+function updateZone(){const d=Math.hypot(player.x,player.y);islandZone=d<320?'camp':d<720?'forest':'shore';}
 function update(dt){
-  const v=input();const speed=155;worldTime+=dt;attackCooldown=Math.max(0,attackCooldown-dt);
+  const v=input();const speed=155;worldTime+=dt;updateZone();attackCooldown=Math.max(0,attackCooldown-dt);
   if(v.m>.05&&state.en>0){
     player.x+=v.x*speed*v.m*dt;player.y+=v.y*speed*v.m*dt;player.dir=Math.atan2(v.y,v.x);
     state.en=Math.max(0,state.en-dt*(.19*(100/state.maxEn)));
@@ -265,6 +272,12 @@ function doAttack(){
   }
   if(!hit)toast('Враг слишком далеко');
 }
+function interactWorld(){
+ let nearest=null,nd=95;for(const t of treasures){if(!t.opened){const d=dist(t,player);if(d<nd){nearest={kind:'treasure',obj:t};nd=d}}}for(const n of rareNodes){if(n.alive){const d=dist(n,player);if(d<nd){nearest={kind:'rare',obj:n};nd=d}}}
+ if(!nearest){toast('Ничего интересного рядом');return}
+ if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Найден редкий тайник · +'+reward+' монет');saveGame();return}
+ const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
+}
 function doBuild(){
   const types=[
     {type:"hut",name:"🏠 Убежище",wood:10,stone:5},
@@ -287,7 +300,7 @@ function doBuild(){
   saveGame()
 }
 
-state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
+state.treasures=state.treasures||0;state.rare=state.rare||0;state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
 function openUpgrades(){document.getElementById('upgradePanel').style.display='block';}
 function buyUpgrade(kind){
  const data={hp:[60,'maxHp',10],en:[70,'maxEn',15],dmg:[90,'damage',1],bag:[80,'gather',1]}[kind];
