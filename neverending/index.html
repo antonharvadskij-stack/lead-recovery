@@ -88,6 +88,8 @@ const cam={x:0,y:0};
 const world={w:3000,h:2200};
 const island={cx:0,cy:0,rx:1250,ry:860};
 const trees=[],rocks=[],enemies=[],loot=[],buildings=[];
+const ruins=[{x:-620,y:-180},{x:690,y:240},{x:430,y:470}];
+
 const keys={};
 let joystick={x:0,y:0,active:false},last=performance.now(),night=0,missionTarget=10,missionStage=0,gameOver=false,saveTimer=0,ysdk=null;const particles=[],floaters=[];let worldTime=0,attackCooldown=0,cameraShake=0;
 
@@ -97,7 +99,7 @@ function onIsland(x,y){const dx=x/island.rx,dy=y/island.ry;return dx*dx+dy*dy<.9
 function spawn(){
   for(let i=0;i<95;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<180);trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:i})}
   for(let i=0;i<55;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<230);rocks.push({x,y,s:rnd(.75,1.25),hp:2})}
-  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);enemies.push({x,y,r:20,hp:3,max:3,spd:rnd(20,32),phase:rnd(0,6),alive:true})}
+  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);enemies.push({x,y,r:20,hp:3,max:3,spd:rnd(20,32),phase:rnd(0,6),alive:true,type:i%4===0?'brute':'raider'})}
   buildings.push({x:-170,y:70,type:'hut',built:true},{x:260,y:-160,type:'tower',built:true},{x:50,y:210,type:'camp',built:true})
 }
 spawn();
@@ -125,6 +127,7 @@ function drawIsland(){
   ctx.save();ctx.strokeStyle='rgba(235,210,143,.72)';ctx.lineWidth=18;ctx.beginPath();ctx.ellipse(sx(0),sy(-5),island.rx-32,island.ry-40,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(255,245,191,.34)';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(sx(0),sy(-8),island.rx-50,island.ry-58,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(174,220,133,.24)';ctx.lineWidth=10;for(let i=0;i<18;i++){const x=-720+i*82,y=180+Math.sin(i*1.7)*95;ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+35),sy(y-22),sx(x+75),sy(y-4));ctx.stroke()}ctx.restore();
   ctx.save();ctx.globalAlpha=.32;ctx.strokeStyle='#a9e1d7';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(sx(0),sy(17),island.rx+82,island.ry+72,0,0,Math.PI*2);ctx.stroke();ctx.restore();
 }
+function drawRuins(){for(const r of ruins){const x=sx(r.x),y=sy(r.y);shadow(r.x,r.y+20,58,14,.3);ctx.save();ctx.translate(x,y);ctx.fillStyle='#596467';ctx.fillRect(-48,-8,96,14);ctx.fillRect(-38,-45,16,38);ctx.fillRect(20,-35,15,28);ctx.fillStyle='#303d42';ctx.fillRect(-28,-3,16,9);ctx.fillRect(8,-3,20,9);ctx.restore()}}
 function drawTree(t){
   shadow(t.x,t.y+30,34*t.s,12*t.s,.34);const x=sx(t.x),y=sy(t.y),s=t.s;ctx.save();ctx.translate(x,y);
   const trunk=ctx.createLinearGradient(-10,0,12,0);trunk.addColorStop(0,'#3c2619');trunk.addColorStop(.45,'#9a6338');trunk.addColorStop(.72,'#684027');trunk.addColorStop(1,'#2f1e16');ctx.fillStyle=trunk;ctx.beginPath();ctx.moveTo(-10*s,38*s);ctx.lineTo(-7*s,-22*s);ctx.lineTo(8*s,-23*s);ctx.lineTo(12*s,38*s);ctx.closePath();ctx.fill();
@@ -150,7 +153,7 @@ function drawCamp(b){
   const x=sx(b.x),y=sy(b.y);shadow(b.x,b.y+28,58,17,.3);ctx.save();ctx.translate(x,y);ctx.strokeStyle='#68452b';ctx.lineWidth=14;ctx.beginPath();ctx.moveTo(-32,20);ctx.lineTo(32,-14);ctx.moveTo(32,20);ctx.lineTo(-32,-14);ctx.stroke();const f=16+Math.sin(performance.now()/110)*5;const grad=ctx.createRadialGradient(0,3,2,0,3,35);grad.addColorStop(0,'#fffbd0');grad.addColorStop(.25,'#ffe06c');grad.addColorStop(.6,'#ff9e27');grad.addColorStop(1,'rgba(224,60,20,0)');ctx.fillStyle=grad;ctx.beginPath();ctx.arc(0,4,34,0,Math.PI*2);ctx.fill();ctx.fillStyle='#fff3a2';ctx.beginPath();ctx.moveTo(0,-14-f);ctx.quadraticCurveTo(-12,2,-5,15);ctx.quadraticCurveTo(4,7,12,15);ctx.quadraticCurveTo(17,0,0,-14-f);ctx.fill();ctx.restore();
 }
 function drawEnemy(e){
-  if(!e.alive)return;const x=sx(e.x),y=sy(e.y);shadow(e.x,e.y+22,25,9,.42);ctx.save();ctx.translate(x,y);ctx.strokeStyle='#251722';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-8,13);ctx.lineTo(-12,27);ctx.moveTo(8,13);ctx.lineTo(12,27);ctx.stroke();const g=ctx.createRadialGradient(-5,-8,2,0,0,25);g.addColorStop(0,'#c35a62');g.addColorStop(.55,'#78313f');g.addColorStop(1,'#351c2a');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,21,0,Math.PI*2);ctx.fill();ctx.fillStyle='#4a2431';ctx.beginPath();ctx.arc(0,-5,17,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd96b';ctx.beginPath();ctx.arc(-7,-6,3.5,0,Math.PI*2);ctx.arc(7,-6,3.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#26131a';ctx.beginPath();ctx.arc(-7,-6,1.5,0,Math.PI*2);ctx.arc(7,-6,1.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#2a151d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-10,6);ctx.quadraticCurveTo(0,12,10,6);ctx.stroke();ctx.strokeStyle='#8d6847';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(18,4);ctx.lineTo(30,-10);ctx.stroke();ctx.restore();if(e.hp<e.max){ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(x-22,y-34,44,5);ctx.fillStyle='#ff6570';ctx.fillRect(x-22,y-34,44*(e.hp/e.max),5)}
+  if(!e.alive)return;const x=sx(e.x),y=sy(e.y);shadow(e.x,e.y+22,25,9,.42);ctx.save();ctx.translate(x,y);const scale=e.type==='brute'?1.3:1;ctx.scale(scale,scale);ctx.strokeStyle='#251722';ctx.lineWidth=7;ctx.beginPath();ctx.moveTo(-8,13);ctx.lineTo(-12,27);ctx.moveTo(8,13);ctx.lineTo(12,27);ctx.stroke();const g=ctx.createRadialGradient(-5,-8,2,0,0,25);g.addColorStop(0,e.type==='brute'?'#d58a55':'#c35a62');g.addColorStop(.55,e.type==='brute'?'#8d4d2d':'#78313f');g.addColorStop(1,'#351c2a');ctx.fillStyle=g;ctx.beginPath();ctx.arc(0,0,21,0,Math.PI*2);ctx.fill();ctx.fillStyle='#4a2431';ctx.beginPath();ctx.arc(0,-5,17,Math.PI,Math.PI*2);ctx.fill();ctx.fillStyle='#ffd96b';ctx.beginPath();ctx.arc(-7,-6,3.5,0,Math.PI*2);ctx.arc(7,-6,3.5,0,Math.PI*2);ctx.fill();ctx.fillStyle='#26131a';ctx.beginPath();ctx.arc(-7,-6,1.5,0,Math.PI*2);ctx.arc(7,-6,1.5,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#2a151d';ctx.lineWidth=3;ctx.beginPath();ctx.moveTo(-10,6);ctx.quadraticCurveTo(0,12,10,6);ctx.stroke();ctx.strokeStyle='#8d6847';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(18,4);ctx.lineTo(30,-10);ctx.stroke();ctx.restore();if(e.hp<e.max){ctx.fillStyle='rgba(0,0,0,.65)';ctx.fillRect(x-22,y-34,44,5);ctx.fillStyle='#ff6570';ctx.fillRect(x-22,y-34,44*(e.hp/e.max),5)}
 }
 function drawLoot(l){
   const x=sx(l.x),y=sy(l.y);shadow(l.x,l.y+12,16,6,.25);const pulse=18+Math.sin(performance.now()/180+l.x)*4;const glow=ctx.createRadialGradient(x,y,2,x,y,pulse);glow.addColorStop(0,'rgba(255,230,110,.34)');glow.addColorStop(1,'rgba(255,230,110,0)');ctx.fillStyle=glow;ctx.beginPath();ctx.arc(x,y,pulse,0,Math.PI*2);ctx.fill();ctx.save();ctx.translate(x,y+Math.sin(performance.now()/240+l.y)*3);ctx.rotate(Math.sin(performance.now()/300+l.x)*.05);
@@ -166,7 +169,7 @@ function drawDecor(){
   ctx.restore();
 }
 function draw(){
-  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();
+  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();drawRuins();
   const objs=[];
   trees.forEach(t=>objs.push({y:t.y,fn:()=>drawTree(t)}));rocks.forEach(r=>objs.push({y:r.y,fn:()=>drawRock(r)}));
   buildings.forEach(b=>objs.push({y:b.y,fn:()=>b.type==='hut'?drawHut(b):b.type==='tower'?drawTower(b):drawCamp(b)}));
@@ -201,11 +204,11 @@ function update(dt){
   if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
   player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
   cam.x+=(player.x-cam.x)*Math.min(1,dt*7);cam.y+=(player.y-cam.y)*Math.min(1,dt*7);
-  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);if(d<340){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>44){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<50&&Math.random()<dt*.72){state.hp=Math.max(0,state.hp-3);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-3','#ff8790');cameraShake=.28}}}
+  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=e.type==='brute'?6:3;state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.28}}}
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
     let alive=enemies.filter(e=>e.alive).length;
-    if(alive<12){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||dist({x,y},player)<420);enemies.push({x,y,r:20,hp:3+Math.floor(state.level/4),max:3+Math.floor(state.level/4),spd:rnd(22,34)+state.level,phase:rnd(0,6),alive:true});toast('👹 В лесу появился новый враг')}
+    if(alive<12){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||dist({x,y},player)<420);enemies.push({x,y,r:20,hp:(i%3===0?5:3)+Math.floor(state.level/4),max:(i%3===0?5:3)+Math.floor(state.level/4),spd:rnd(22,34)+state.level,phase:rnd(0,6),alive:true,type:Math.random()<.28?'brute':'raider'});toast('👹 В лесу появился новый враг')}
   }
   if(state.hp<=0&&!gameOver){gameOver=true;document.getElementById("gameOverText").textContent="День "+state.day+" · уровень "+state.level+" · врагов побеждено: "+state.kills;document.getElementById("gameOver").style.display="block";saveGame()}
   player.attack=Math.max(0,player.attack-dt);player.hit=Math.max(0,player.hit-dt);
