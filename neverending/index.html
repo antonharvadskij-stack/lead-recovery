@@ -70,7 +70,7 @@
   <div class="row"><span>🪨 Камень</span><b id="pStone">10</b></div>
   <div class="row"><span>🪙 Монеты</span><b id="pCoins">100</b></div>
   <div class="row"><span>🌲 Собрано деревьев</span><b id="pTrees">0</b></div>
-  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="reset">Новая игра</button></div>
+  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="openUpgrades">⚒️ Улучшения</button><button id="reset">Новая игра</button></div>
 </div>
 <script>
 (() => {
@@ -291,7 +291,7 @@ function buyUpgrade(kind){
  if(state.coins<data[0]){toast('Нужно '+data[0]+' монет');return}
  state.coins-=data[0];state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
 }
-document.getElementById('upgHp').onclick=()=>buyUpgrade('hp');document.getElementById('upgEn').onclick=()=>buyUpgrade('en');document.getElementById('upgDmg').onclick=()=>buyUpgrade('dmg');document.getElementById('upgBag').onclick=()=>buyUpgrade('bag');document.getElementById('upgClose').onclick=()=>document.getElementById('upgradePanel').style.display='none';
+document.getElementById('openUpgrades').onclick=openUpgrades;document.getElementById('upgHp').onclick=()=>buyUpgrade('hp');document.getElementById('upgEn').onclick=()=>buyUpgrade('en');document.getElementById('upgDmg').onclick=()=>buyUpgrade('dmg');document.getElementById('upgBag').onclick=()=>buyUpgrade('bag');document.getElementById('upgClose').onclick=()=>document.getElementById('upgradePanel').style.display='none';
 document.getElementById("restart").onclick=()=>location.reload();
 document.getElementById('collect').onclick=doCollect;document.getElementById('loot').onclick=doLoot;document.getElementById('attack').onclick=doAttack;document.getElementById('build').onclick=doBuild;
 document.getElementById('menu').onclick=()=>document.getElementById('panel').style.display='block';document.getElementById('closePanel').onclick=()=>document.getElementById('panel').style.display='none';document.getElementById('reset').onclick=()=>location.reload();
