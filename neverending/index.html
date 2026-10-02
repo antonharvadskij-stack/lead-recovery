@@ -30,6 +30,8 @@
 @media (orientation:portrait) and (max-width:700px){#rotate{display:flex!important}}
 .rotateCard{max-width:370px;background:rgba(7,19,31,.95);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:30px;box-shadow:0 30px 80px #0009}.rotateIcon{font-size:62px;display:block;margin-bottom:12px}.rotateCard h2{margin:0 0 8px}.rotateCard p{opacity:.78;margin:0;line-height:1.45}
 @media (orientation:landscape){.top{padding:9px 14px}.pill{padding:9px 13px}.stats{top:67px;left:14px;width:205px}.controls{bottom:11px;left:18px;right:18px}.joy{width:116px;height:116px}.stick{left:31px;top:31px}.act{width:104px;height:78px}.buttons{gap:10px}#mission{top:11px}}
+
+#upgradePanel{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%);z-index:50;width:min(92vw,520px);padding:22px;border-radius:22px;background:rgba(18,28,38,.96);border:2px solid rgba(255,220,130,.45);box-shadow:0 18px 60px rgba(0,0,0,.55);color:#fff;font-family:system-ui;display:none}#upgradePanel h2{margin:0 0 6px;font-size:24px}#upgradePanel p{margin:4px 0 16px;color:#b9c9d5}.upgGrid{display:grid;grid-template-columns:1fr 1fr;gap:10px}.upgBtn{border:1px solid rgba(255,255,255,.16);border-radius:15px;padding:13px;background:rgba(255,255,255,.08);color:#fff;text-align:left;font-weight:800}.upgBtn small{display:block;color:#a9bdc9;font-weight:600;margin-top:4px}.upgClose{margin-top:14px;width:100%;padding:12px;border:0;border-radius:13px;background:#304555;color:#fff;font-weight:800}
 </style>
 </head>
 <body>
@@ -193,8 +195,8 @@ function update(dt){
   const v=input();const speed=155;worldTime+=dt;attackCooldown=Math.max(0,attackCooldown-dt);
   if(v.m>.05&&state.en>0){
     player.x+=v.x*speed*v.m*dt;player.y+=v.y*speed*v.m*dt;player.dir=Math.atan2(v.y,v.x);
-    state.en=Math.max(0,state.en-dt*.19);
-  }else state.en=Math.min(100,state.en+dt*3.8);
+    state.en=Math.max(0,state.en-dt*(.19*(100/state.maxEn)));
+  }else state.en=Math.min(state.maxEn,state.en+dt*3.8);
   state.hunger=Math.max(0,state.hunger-dt*.022);
   if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
   player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
@@ -240,8 +242,8 @@ requestAnimationFrame(loop);
 function respawnResource(kind){setTimeout(()=>{let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<220);if(kind==="tree")trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:Date.now()});else rocks.push({x,y,s:rnd(.75,1.2),hp:2})},25000)}
 function doCollect(){
   const t=near(trees,70);const r=near(rocks,65);
-  if(t){t.hp--;state.wood+=4;state.en=Math.min(100,state.en+3);burst(t.x,t.y,'#7be08d',8);floatText(t.x,t.y-52,'+4 🪵','#a9f3b4');if(t.hp<=0){state.trees++;state.coins+=4;t.x=99999;respawnResource("tree");toast("+4 дерева · дерево срублено")}else toast("+4 дерева");saveGame()}
-  else if(r){r.hp--;state.stone+=3;burst(r.x,r.y,'#c5d0d4',7);floatText(r.x,r.y-32,'+3 🪨','#dce8ea');if(r.hp<=0){r.x=99999;respawnResource("rock")}toast("+3 камня");saveGame()}
+  if(t){t.hp--;state.wood+=4*state.gather;state.en=Math.min(state.maxEn,state.en+3);burst(t.x,t.y,'#7be08d',8);floatText(t.x,t.y-52,'+4 🪵','#a9f3b4');if(t.hp<=0){state.trees++;state.coins+=4;t.x=99999;respawnResource("tree");toast("+4 дерева · дерево срублено")}else toast("+4 дерева");saveGame()}
+  else if(r){r.hp--;state.stone+=3*state.gather;burst(r.x,r.y,'#c5d0d4',7);floatText(r.x,r.y-32,'+3 🪨','#dce8ea');if(r.hp<=0){r.x=99999;respawnResource("rock")}toast("+3 камня");saveGame()}
   else toast('Подойдите ближе к ресурсу');
 }
 function doLoot(){
@@ -253,7 +255,7 @@ function doAttack(){
   if(attackCooldown>0){toast('⚔️ Оружие перезаряжается');return}player.attack=.32;attackCooldown=.42;let hit=false;
   for(const e of enemies){
     if(e.alive&&dist(e,player)<95){
-      e.hp--;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
+      e.hp-=state.damage;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
       burst(e.x,e.y,'#ffe07a',9);floatText(e.x,e.y-28,'УДАР','#fff1a4');cameraShake=.22;
       if(e.hp<=0){e.alive=false;state.kills++;state.coins+=15;loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+15 🪙','#ffe27d');if(state.kills%3===0){state.level++;toast('⬆️ Уровень '+state.level)}else toast("+15 монет")}
     }
@@ -281,6 +283,15 @@ function doBuild(){
   toast(b.name+" построено · +10 монет");
   saveGame()
 }
+
+state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
+function openUpgrades(){document.getElementById('upgradePanel').style.display='block';}
+function buyUpgrade(kind){
+ const data={hp:[60,'maxHp',10],en:[70,'maxEn',15],dmg:[90,'damage',1],bag:[80,'gather',1]}[kind];
+ if(state.coins<data[0]){toast('Нужно '+data[0]+' монет');return}
+ state.coins-=data[0];state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
+}
+document.getElementById('upgHp').onclick=()=>buyUpgrade('hp');document.getElementById('upgEn').onclick=()=>buyUpgrade('en');document.getElementById('upgDmg').onclick=()=>buyUpgrade('dmg');document.getElementById('upgBag').onclick=()=>buyUpgrade('bag');document.getElementById('upgClose').onclick=()=>document.getElementById('upgradePanel').style.display='none';
 document.getElementById("restart").onclick=()=>location.reload();
 document.getElementById('collect').onclick=doCollect;document.getElementById('loot').onclick=doLoot;document.getElementById('attack').onclick=doAttack;document.getElementById('build').onclick=doBuild;
 document.getElementById('menu').onclick=()=>document.getElementById('panel').style.display='block';document.getElementById('closePanel').onclick=()=>document.getElementById('panel').style.display='none';document.getElementById('reset').onclick=()=>location.reload();
@@ -295,5 +306,5 @@ joyEl.addEventListener('touchstart',joyStart,{passive:false});joyEl.addEventList
 updateUI();
 })();
 </script>
-</body>
+<div id="upgradePanel"><h2>⚒️ Лагерь выжившего</h2><p>Улучшайте персонажа за монеты. Прогресс сохраняется.</p><div class="upgGrid"><button class="upgBtn" id="upgHp">❤️ Живучесть <small>+10 максимум здоровья · 60 🪙</small></button><button class="upgBtn" id="upgEn">⚡ Выносливость <small>меньше расход энергии · 70 🪙</small></button><button class="upgBtn" id="upgDmg">⚔️ Оружие <small>+1 урон · 90 🪙</small></button><button class="upgBtn" id="upgBag">🎒 Рюкзак <small>больше добычи с ресурсов · 80 🪙</small></button></div><button class="upgClose" id="upgClose">Закрыть</button></div></body>
 </html>
