@@ -175,9 +175,9 @@ function near(list,r){let best=null,bd=r;for(const o of list){if(o.hp<=0||o.aliv
 function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',1400)}
 function updateMission(){
   const el=document.getElementById("mission");
-  if(missionStage===0){const left=Math.max(0,10-state.trees);el.textContent=left?("🎯 Соберите ещё "+left+" дерева"):"🏗️ Постройте убежище";if(state.trees>=10)missionStage=1}
-  else if(missionStage===1){const left=Math.max(0,3-state.built);el.textContent=left?("🏠 Постройте ещё "+left+" объекта"):"⚔️ Победите 3 врагов";if(state.built>=3)missionStage=2}
-  else if(missionStage===2){const left=Math.max(0,3-state.kills);el.textContent=left?("⚔️ Победите ещё "+left+" врагов"):"🌅 Доживите до 2 дня";if(state.kills>=3)missionStage=3}
+  if(missionStage===0){const left=Math.max(0,10-state.trees);el.textContent=left?("🎯 Срубите ещё "+left+" деревьев"):"🏗️ Постройте 3 объекта";if(state.trees>=10){missionStage=1;state.coins+=50;toast("🎁 Цель выполнена · +50 монет");saveGame()}}
+  else if(missionStage===1){const left=Math.max(0,3-state.built);el.textContent=left?("🏠 Постройте ещё "+left+" объекта"):"⚔️ Победите 3 врагов";if(state.built>=3){missionStage=2;state.coins+=75;toast("🎁 Поселение готово · +75 монет");saveGame()}}
+  else if(missionStage===2){const left=Math.max(0,3-state.kills);el.textContent=left?("⚔️ Победите ещё "+left+" врагов"):"🌅 Доживите до 2 дня";if(state.kills>=3){missionStage=3;state.coins+=100;toast("🎁 Район очищен · +100 монет");saveGame()}}
   else {el.textContent=state.day>=2?"🏆 Остров освоен — продолжайте развиваться":"🌅 Доживите до 2 дня";}
 }
 function updateUI(){
@@ -240,7 +240,7 @@ requestAnimationFrame(loop);
 function respawnResource(kind){setTimeout(()=>{let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<220);if(kind==="tree")trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:Date.now()});else rocks.push({x,y,s:rnd(.75,1.2),hp:2})},25000)}
 function doCollect(){
   const t=near(trees,70);const r=near(rocks,65);
-  if(t){t.hp--;state.wood+=4;state.trees++;state.en=Math.min(100,state.en+3);burst(t.x,t.y,'#7be08d',8);floatText(t.x,t.y-52,'+4 🪵','#a9f3b4');if(t.hp<=0){t.x=99999;respawnResource("tree")}toast("+4 дерева");saveGame()}
+  if(t){t.hp--;state.wood+=4;state.en=Math.min(100,state.en+3);burst(t.x,t.y,'#7be08d',8);floatText(t.x,t.y-52,'+4 🪵','#a9f3b4');if(t.hp<=0){state.trees++;state.coins+=4;t.x=99999;respawnResource("tree");toast("+4 дерева · дерево срублено")}else toast("+4 дерева");saveGame()}
   else if(r){r.hp--;state.stone+=3;burst(r.x,r.y,'#c5d0d4',7);floatText(r.x,r.y-32,'+3 🪨','#dce8ea');if(r.hp<=0){r.x=99999;respawnResource("rock")}toast("+3 камня");saveGame()}
   else toast('Подойдите ближе к ресурсу');
 }
@@ -261,8 +261,25 @@ function doAttack(){
   if(!hit)toast('Враг слишком далеко');
 }
 function doBuild(){
-  if(state.wood<10||state.stone<5){toast('Нужно 10 дерева и 5 камня');return}
-  state.wood-=10;state.stone-=5;state.built++;buildings.push({x:player.x+70,y:player.y+35,type:"hut",built:true});toast("🏠 Убежище построено");saveGame()
+  const types=[
+    {type:"hut",name:"🏠 Убежище",wood:10,stone:5},
+    {type:"tower",name:"🗼 Сторожевая башня",wood:18,stone:12},
+    {type:"camp",name:"🔥 Костровище",wood:14,stone:8}
+  ];
+  const b=types[state.built%types.length];
+  if(state.wood<b.wood||state.stone<b.stone){toast("Нужно "+b.wood+" дерева и "+b.stone+" камня");return}
+  const a=player.dir, d=105;
+  const bx=player.x+Math.cos(a)*d, by=player.y+Math.sin(a)*d;
+  if(!onIsland(bx,by)){toast("Нельзя строить за пределами острова");return}
+  if(buildings.some(x=>dist(x,{x:bx,y:by})<75)){toast("Слишком близко к другому объекту");return}
+  state.wood-=b.wood;state.stone-=b.stone;state.built++;
+  buildings.push({x:bx,y:by,type:b.type,built:true});
+  state.en=Math.min(100,state.en+8);
+  state.coins+=10;
+  burst(bx,by,'#ffd45b',18);
+  floatText(bx,by-50,'+10 🪙','#ffe38a');
+  toast(b.name+" построено · +10 монет");
+  saveGame()
 }
 document.getElementById("restart").onclick=()=>location.reload();
 document.getElementById('collect').onclick=doCollect;document.getElementById('loot').onclick=doLoot;document.getElementById('attack').onclick=doAttack;document.getElementById('build').onclick=doBuild;
