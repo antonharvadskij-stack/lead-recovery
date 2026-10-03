@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import * as Phaser from "phaser";
 import { Platform } from "../platform/yandex";
 
 export class BootScene extends Phaser.Scene {
