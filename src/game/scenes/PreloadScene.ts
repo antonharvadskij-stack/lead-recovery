@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import * as Phaser from "phaser";
 import { ASSET_MANIFEST } from "../assets/manifest";
 import { generatePlaceholderTextures } from "../assets/ProceduralTextures";
 import { GAME_HEIGHT, GAME_WIDTH } from "../config";
