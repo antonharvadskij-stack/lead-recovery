@@ -65,6 +65,9 @@ export class GameScene extends Phaser.Scene {
   private buildings: Phaser.GameObjects.GameObject[] = [];
   private lastFarmTick = 0;
   private lastTowerShot = 0;
+  private chests: Phaser.GameObjects.Container[] = [];
+  private discoveredZones = new Set<string>();
+  private workshopCrafts = 0;
 
   constructor() {
     super("Game");
@@ -86,6 +89,7 @@ export class GameScene extends Phaser.Scene {
     this.quest = { type: "gather", target: 10, progress: 0 };
     this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
     this.lastFarmTick = 0; this.lastTowerShot = 0;
+    this.chests = []; this.discoveredZones = new Set<string>(); this.workshopCrafts = 0;
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
@@ -120,6 +124,8 @@ export class GameScene extends Phaser.Scene {
     this.createBaseBuildings(S / 2, S / 2);
     this.nightOverlay = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x07152b, 0)
       .setScrollFactor(0).setDepth(9000).setInteractive(false);
+
+    this.createExplorationZones(S / 2, S / 2, rng);
 
     // костёр + свет
     this.add.image(S / 2, S / 2, K.campfire).setDepth(S / 2 - 1);
@@ -258,6 +264,55 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private createExplorationZones(cx: number, cy: number, rng: Phaser.Math.RandomDataGenerator) {
+    const zones = [
+      { id: "north", x: cx, y: cy - 760, r: 150, name: "ТУМАННЫЕ БОЛОТА", tint: 0x5f7c75 },
+      { id: "east", x: cx + 760, y: cy, r: 155, name: "КАМЕННЫЙ БЕРЕГ", tint: 0x8b8270 },
+      { id: "south", x: cx, y: cy + 760, r: 160, name: "ЗАРОСШИЕ ПОЛЯ", tint: 0x708b4e },
+      { id: "west", x: cx - 760, y: cy, r: 150, name: "СТАРЫЕ РУИНЫ", tint: 0x6f6875 },
+    ];
+    for (const z of zones) {
+      const g = this.add.graphics().setDepth(-1);
+      g.fillStyle(z.tint, 0.16).fillCircle(z.x, z.y, z.r);
+      g.lineStyle(3, z.tint, 0.35).strokeCircle(z.x, z.y, z.r);
+      this.add.text(z.x, z.y - z.r - 18, z.name, { fontFamily: "sans-serif", fontSize: "16px", color: "#e9dfbd", stroke: "#172017", strokeThickness: 4 }).setOrigin(0.5).setDepth(0);
+      for (let i = 0; i < 3; i++) {
+        const a = rng.frac() * Math.PI * 2, rr = 35 + rng.frac() * (z.r - 45);
+        this.createChest(z.x + Math.cos(a) * rr, z.y + Math.sin(a) * rr, z.id, i);
+      }
+    }
+  }
+  private createChest(x: number, y: number, zone: string, index: number) {
+    const body = this.add.rectangle(0, 5, 38, 28, 0x6b4227).setStrokeStyle(3, 0xd2a65c);
+    const lid = this.add.rectangle(0, -10, 42, 12, 0x9b6230).setStrokeStyle(2, 0xe0c078);
+    const lock = this.add.rectangle(0, 1, 7, 10, 0xe0bd54);
+    const c = this.add.container(x, y, [body, lid, lock]).setDepth(y + 1).setSize(55, 55).setInteractive();
+    c.setData("zone", zone).setData("index", index).setData("opened", false);
+    c.on("pointerdown", () => this.openChest(c));
+    this.chests.push(c);
+  }
+  private openChest(c: Phaser.GameObjects.Container) {
+    if (c.getData("opened") || this.over) return;
+    c.setData("opened", true);
+    this.discoveredZones.add(String(c.getData("zone")));
+    const reward = 10 + Phaser.Math.Between(5, 20);
+    this.resources.coins += reward;
+    this.resources.food += Phaser.Math.Between(1, 3);
+    this.resources.stone += Phaser.Math.Between(1, 4);
+    const lid = c.list[1] as Phaser.GameObjects.Rectangle;
+    lid.angle = -28;
+    const t = this.add.text(c.x, c.y - 60, "+" + reward + " МОНЕТ", { fontFamily: "sans-serif", fontSize: "17px", fontStyle: "bold", color: "#ffe29a", stroke: "#3b2412", strokeThickness: 4 }).setOrigin(0.5).setDepth(8000);
+    this.tweens.add({ targets: t, y: t.y - 35, alpha: 0, duration: 900, onComplete: () => t.destroy() });
+    this.pushHud();
+  }
+  private craftAtWorkshop() {
+    const cost = { wood: 8 + this.workshopLevel * 4, stone: 6 + this.workshopLevel * 3 };
+    if (this.resources.wood < cost.wood || this.resources.stone < cost.stone) return;
+    this.resources.wood -= cost.wood; this.resources.stone -= cost.stone;
+    this.workshopCrafts++;
+    this.resources.coins += 8 + this.workshopLevel * 3;
+    this.pushHud();
+  }
   private createBaseBuildings(cx: number, cy: number) {
     const make = (x: number, y: number, type: string) => {
       const g = this.add.graphics().setDepth(y - 2);
@@ -404,6 +459,7 @@ export class GameScene extends Phaser.Scene {
     if (inp.build) { inp.build = false; this.buildCamp(); }
     if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
     if (inp.eat) { inp.eat = false; this.eatFood(); }
+    if ((inp as any).craft) { (inp as any).craft = false; this.craftAtWorkshop(); }
     const k = this.keys;
     if (!this.over) {
       if (Phaser.Input.Keyboard.JustDown(k.SPACE) || Phaser.Input.Keyboard.JustDown(k.J) || inp.attack) {
