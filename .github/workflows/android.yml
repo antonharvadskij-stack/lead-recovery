@@ -55,6 +55,7 @@ jobs:
           import com.yandex.mobile.ads.rewarded.RewardedAdEventListener;
           import com.yandex.mobile.ads.rewarded.RewardedAdLoadListener;
           import com.yandex.mobile.ads.rewarded.RewardedAdLoader;
+          import com.yandex.mobile.ads.common.YandexAds;
 
           public class MainActivity extends BridgeActivity {
               private RewardedAd rewardedAd;
@@ -68,7 +69,7 @@ jobs:
                       bridge.getWebView().getSettings().setJavaScriptEnabled(true);
                       bridge.getWebView().addJavascriptInterface(new AdBridge(), "Android");
                   }
-                  loadRewardedAd();
+                  YandexAds.initialize(this, () -> loadRewardedAd());
               }
 
               private void loadRewardedAd() {
