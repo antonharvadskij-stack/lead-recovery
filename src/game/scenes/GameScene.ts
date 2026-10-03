@@ -299,19 +299,41 @@ export class GameScene extends Phaser.Scene {
 
   private createExplorationZones(cx: number, cy: number, rng: Phaser.Math.RandomDataGenerator) {
     const zones = [
-      { id: "north", x: cx, y: cy - 760, r: 150, name: "ТУМАННЫЕ БОЛОТА", tint: 0x5f7c75 },
-      { id: "east", x: cx + 760, y: cy, r: 155, name: "КАМЕННЫЙ БЕРЕГ", tint: 0x8b8270 },
-      { id: "south", x: cx, y: cy + 760, r: 160, name: "ЗАРОСШИЕ ПОЛЯ", tint: 0x708b4e },
-      { id: "west", x: cx - 760, y: cy, r: 150, name: "СТАРЫЕ РУИНЫ", tint: 0x6f6875 },
+      { id: "swamp", x: cx, y: cy - 1500, r: 330, name: "ТУМАННЫЕ БОЛОТА", tint: 0x536f68 },
+      { id: "forest", x: cx + 1120, y: cy - 1080, r: 320, name: "ЧЁРНЫЙ ЛЕС", tint: 0x2f4b36 },
+      { id: "coast", x: cx + 1550, y: cy, r: 340, name: "КАМЕННЫЙ БЕРЕГ", tint: 0x827b70 },
+      { id: "ash", x: cx + 1050, y: cy + 1150, r: 320, name: "ПЕПЕЛЬНЫЕ ПУСТОШИ", tint: 0x675653 },
+      { id: "fields", x: cx, y: cy + 1550, r: 350, name: "ЗАРОСШИЕ ПОЛЯ", tint: 0x718a4d },
+      { id: "rot", x: cx - 1100, y: cy + 1100, r: 330, name: "ГНИЮЩЕЕ БОЛОТО", tint: 0x405950 },
+      { id: "ruins", x: cx - 1550, y: cy, r: 340, name: "СТАРЫЕ РУИНЫ", tint: 0x68636f },
+      { id: "twisted", x: cx - 1100, y: cy - 1100, r: 325, name: "ИСКАЖЁННАЯ РОЩА", tint: 0x514367 },
     ];
     for (const z of zones) {
-      const g = this.add.graphics().setDepth(-1);
-      g.fillStyle(z.tint, 0.16).fillCircle(z.x, z.y, z.r);
-      g.lineStyle(3, z.tint, 0.35).strokeCircle(z.x, z.y, z.r);
-      this.add.text(z.x, z.y - z.r - 18, z.name, { fontFamily: "sans-serif", fontSize: "16px", color: "#e9dfbd", stroke: "#172017", strokeThickness: 4 }).setOrigin(0.5).setDepth(0);
-      for (let i = 0; i < 3; i++) {
-        const a = rng.frac() * Math.PI * 2, rr = 35 + rng.frac() * (z.r - 45);
+      const g = this.add.graphics().setDepth(-2);
+      g.fillStyle(z.tint, 0.22).fillCircle(z.x, z.y, z.r);
+      g.lineStyle(5, z.tint, 0.42).strokeCircle(z.x, z.y, z.r);
+      this.add.text(z.x, z.y - z.r - 28, z.name, {
+        fontFamily: "sans-serif", fontSize: "19px", color: "#e7ddc0", stroke: "#151b16", strokeThickness: 6
+      }).setOrigin(0.5).setDepth(1);
+
+      const chestCount = z.id === "ruins" ? 6 : 4;
+      for (let i = 0; i < chestCount; i++) {
+        const a = rng.frac() * Math.PI * 2;
+        const rr = 60 + rng.frac() * (z.r - 85);
         this.createChest(z.x + Math.cos(a) * rr, z.y + Math.sin(a) * rr, z.id, i);
+      }
+
+      for (let i = 0; i < 9; i++) {
+        const a = rng.frac() * Math.PI * 2;
+        const rr = 45 + rng.frac() * (z.r - 65);
+        const px = z.x + Math.cos(a) * rr, py = z.y + Math.sin(a) * rr;
+        if (z.id === "forest" || z.id === "twisted") {
+          this.add.rectangle(px, py, 18, 42, z.tint, 0.48).setAngle(rng.frac() * 20 - 10).setDepth(py);
+        } else if (z.id === "ruins") {
+          this.add.rectangle(px, py, 34, 18, z.tint, 0.48).setAngle(rng.frac() * 180).setDepth(py);
+        } else {
+          this.add.circle(px, py, 8 + rng.frac() * 10, z.tint, 0.38).setDepth(py);
+        }
       }
     }
   }
