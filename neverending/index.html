@@ -273,11 +273,6 @@ function drawDecor(){
  for(let i=0;i<28;i++){const x=-600+(i*211)%1200,y=-360+(i*149)%720;if(Math.hypot(x,y)>Math.max(island.rx,island.ry)*.84)continue;const px=sx(x),py=sy(y);ctx.globalAlpha=.3;ctx.fillStyle='#53666b';ctx.beginPath();ctx.ellipse(px,py,13+(i%4)*3,8+(i%3)*2,-.3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.45;ctx.fillStyle='#8a9a98';ctx.beginPath();ctx.ellipse(px-3,py-3,6,3,-.3,0,Math.PI*2);ctx.fill();}
  ctx.restore();
 }
-  // subtle atmospheric depth: distant clouds, birds and fireflies
-  ctx.save();ctx.globalAlpha=.16;
-  for(let i=0;i<8;i++){const x=(i*347)%W,y=80+(i*83)%(H*.38);ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(x,y,55,12,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+35,y-5,38,10,0,0,Math.PI*2);ctx.fill()}
-  ctx.restore();
-}
 function draw(){
   const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawWater();drawIsland();drawDecor();drawRuins();drawRareNodes();drawTreasures();
   const objs=[];
