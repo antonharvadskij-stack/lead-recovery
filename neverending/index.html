@@ -336,8 +336,16 @@ function safeSceneRender(){
 }
 function loop(now){
   const dt=Math.min(.04,(now-last)/1000);last=now;
-  try{update(dt)}catch(e){console.error('update',e)}
-  try{draw()}catch(e){console.error('draw',e);safeSceneRender()}
+  try{
+    update(dt);
+    draw();
+  }catch(err){
+    console.error("NEVERENDING runtime error:",err);
+    const box=document.getElementById("errorBox");
+    if(box){box.style.display="block";box.textContent="Ошибка запуска: "+(err?.message||err)}
+    // Keep the canvas alive while exposing the real error instead of silently freezing.
+    try{safeSceneRender()}catch(_){}
+  }
   requestAnimationFrame(loop);
 }
 async function initYandex(){try{if(window.YaGames){ysdk=await YaGames.init();if(ysdk?.features?.LoadingAPI)ysdk.features.LoadingAPI.ready();if(ysdk?.features?.GameplayAPI)ysdk.features.GameplayAPI.start()}}catch(e){console.log("Yandex SDK unavailable",e)}}
