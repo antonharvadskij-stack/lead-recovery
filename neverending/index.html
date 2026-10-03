@@ -190,7 +190,7 @@ function draw(){
   const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();drawRuins();drawRareNodes();drawTreasures();
   const objs=[];
   trees.forEach(t=>objs.push({y:t.y,fn:()=>drawTree(t)}));rocks.forEach(r=>objs.push({y:r.y,fn:()=>drawRock(r)}));
-  buildings.forEach(b=>objs.push({y:b.y,fn:()=>b.type==='hut'?drawHut(b):b.type==='tower'?drawTower(b):drawCamp(b)}));
+  buildings.forEach(b=>objs.push({y:b.y,fn:()=>drawBuildStructure(b)}));
   loot.forEach(l=>objs.push({y:l.y,fn:()=>drawLoot(l)}));enemies.forEach(e=>objs.push({y:e.y,fn:()=>drawEnemy(e)}));objs.push({y:player.y,fn:drawPlayer});objs.sort((a,b)=>a.y-b.y);objs.forEach(o=>o.fn());
   drawEffects();if(night>.01){ctx.fillStyle='rgba(3,12,30,'+(night*.38)+')';ctx.fillRect(0,0,W,H)}ctx.restore();
 }
@@ -216,7 +216,7 @@ function updateZone(){const d=Math.hypot(player.x,player.y);islandZone=d<320?'ca
 function update(dt){
   updateEffects(dt);
   if(gameOver){draw();return}
-  const v=input();const speed=155;worldTime+=dt;updateZone();attackCooldown=Math.max(0,attackCooldown-dt);
+  applyBuildingProduction(dt);const v=input();const speed=155;worldTime+=dt;updateZone();attackCooldown=Math.max(0,attackCooldown-dt);
   if(v.m>.05&&state.en>0){
     const nx=player.x+v.x*speed*v.m*dt,ny=player.y+v.y*speed*v.m*dt;
     if(onIsland(nx,ny)){player.x=nx;player.y=ny}else{toast('🌊 Дальше только вода');state.en=Math.max(0,state.en-dt*.5)}
@@ -294,6 +294,22 @@ function interactWorld(){
  if(!nearest){toast('Ничего интересного рядом');return}
  if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.hp=Math.min(state.maxHp,state.hp+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Тайник · +'+reward+' монет · +15 ❤️');saveGame();return}
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
+}
+function drawBuildStructure(b){
+ const x=sx(b.x),y=sy(b.y);
+ ctx.save();ctx.translate(x,y);
+ ctx.shadowBlur=14;
+ if(b.type==='farm'){ctx.fillStyle='#8b6b45';ctx.fillRect(-32,-20,64,40);ctx.fillStyle='#6d9d45';for(let i=-20;i<=20;i+=10){ctx.fillRect(i,-12,5,24)}}
+ else if(b.type==='workshop'){ctx.fillStyle='#8a5a3c';ctx.fillRect(-34,-25,68,50);ctx.fillStyle='#b98b57';ctx.fillRect(-22,-36,44,12);ctx.fillStyle='#e5c27b';ctx.fillRect(-8,-12,16,22)}
+ else if(b.type==='wall'){ctx.fillStyle='#89939b';ctx.fillRect(-42,-12,84,24);ctx.fillStyle='#66717a';for(let i=-32;i<40;i+=16)ctx.fillRect(i,-12,3,24)}
+ else if(b.type==='tower'){drawTower(b)}
+ else if(b.type==='hut'){drawHut(b)}
+ else {drawCamp(b)}
+ ctx.restore();
+}
+function applyBuildingProduction(dt){
+ if(state.farms>0){state.hunger=Math.min(100,state.hunger+state.farms*.16*dt)}
+ if(state.workshops>0){state.coins=Math.min(999999,state.coins+state.workshops*.035*dt)}
 }
 function doBuild(type='hut'){
  const types={hut:{name:'🏠 Убежище',wood:10,stone:5},tower:{name:'🗼 Башня',wood:18,stone:12},camp:{name:'🔥 Костровище',wood:14,stone:8},farm:{name:'🌾 Ферма',wood:22,stone:10},workshop:{name:'🔨 Мастерская',wood:28,stone:18},wall:{name:'🧱 Стена',wood:12,stone:14}};
