@@ -306,13 +306,11 @@ document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:doBuild};
 Object.entries(actionMap).forEach(([id,fn])=>{
   const el=document.getElementById(id);
-  el.addEventListener('click',fn);
-  el.addEventListener('pointerup',e=>{e.preventDefault();fn()},{passive:false});
-  el.addEventListener('touchend',e=>{e.preventDefault();fn()},{passive:false});
+  el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();fn()},{passive:false});
 });
-document.getElementById('menu').addEventListener('click',()=>document.getElementById('panel').style.display='block');
-document.getElementById('closePanel').addEventListener('click',()=>document.getElementById('panel').style.display='none');
-document.getElementById('reset').addEventListener('click',()=>location.reload());
+document.getElementById('menu').addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();document.getElementById('panel').style.display='block'},{passive:false});
+document.getElementById('closePanel').addEventListener('pointerup',e=>{e.preventDefault();document.getElementById('panel').style.display='none'},{passive:false});
+document.getElementById('reset').addEventListener('pointerup',e=>{e.preventDefault();location.reload()},{passive:false});
 
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' '){e.preventDefault();doAttack()}});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
