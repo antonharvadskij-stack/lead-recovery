@@ -23,6 +23,9 @@ interface Enemy {
   maxHp: number;
   last: number;
   busy: boolean;
+  awakened: boolean;
+  memory: number;
+  pacifiedUntil: number;
 }
 
 function ensureAnims(scene: Phaser.Scene, key: string) {
@@ -218,7 +221,7 @@ export class GameScene extends Phaser.Scene {
     const st = STATS[kind];
     const maxHp = Math.round(st.hp * (1 + (level - 1) * 0.6));
     const shadow = this.add.image(x, y, K.shadow).setScale(kind === "brute" ? 1.5 : 1, 0.9);
-    this.enemies.push({ s, shadow, kind, level, hp: maxHp, maxHp, last: 0, busy: false });
+    this.enemies.push({ s, shadow, kind, level, hp: maxHp, maxHp, last: 0, busy: false, awakened: false, memory: 0, pacifiedUntil: 0 });
     this.pushHud();
   }
 
@@ -239,9 +242,12 @@ export class GameScene extends Phaser.Scene {
         const dy = e.s.y - this.player.y;
         if (Math.abs(dy) < 55 && dx * dir > -15 && Math.abs(dx) < 95) this.damageEnemy(e, 20 + this.weaponLevel * 4 + Phaser.Math.Between(0, 8), dir);
       // Первый удар создаёт «связь»: существо запоминает игрока.
+      e.awakened = true;
+      e.memory += 1;
+      e.pacifiedUntil = this.time.now + 2200;
       e.s.setData("awakened", true);
       this.worldMood = Math.max(-10, this.worldMood - 1);
-      this.lastMemoryAction = "Ты разбудил существо. Теперь оно знает, кто ты.";
+      this.lastMemoryAction = "Ты разбудил существо. Оно запомнило тебя.";
       }
     });
   }
@@ -548,14 +554,20 @@ export class GameScene extends Phaser.Scene {
       if (!e.busy) {
         if (this.over) {
           e.s.setVelocity(0, 0);
-        } else if (e.hp < e.maxHp) {
-          // Враг реагирует только после того, как игрок первым его ранил.
-          const sp = st.speed * (1 + (e.level - 1) * 0.12);
+        } else if (e.awakened && this.time.now >= e.pacifiedUntil) {
+          // После пробуждения существо начинает преследовать, но его реакция зависит от памяти.
+          const sp = st.speed * (1 + (e.level - 1) * 0.12 + Math.min(e.memory, 3) * 0.05);
           if (dist > st.range) {
             e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
           } else {
             e.s.setVelocity(0, 0);
           }
+          e.s.setFlipX(dx < 0);
+        } else if (e.hp < e.maxHp) {
+          // Раненое, но ещё не пробуждённое существо также реагирует на игрока.
+          const sp = st.speed * (1 + (e.level - 1) * 0.12);
+          if (dist > st.range) e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
+          else e.s.setVelocity(0, 0);
           e.s.setFlipX(dx < 0);
         } else {
           // Нейтральные враги не бегут на игрока сами.
