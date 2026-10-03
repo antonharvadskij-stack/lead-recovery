@@ -437,20 +437,22 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
     c.fillStyle = g;
     c.fillRect(0, 0, 256, 256);
   });
-  canvasTex(scene, K.water, 128, 128, (c) => {
+  canvasTex(scene, K.water, 192, 192, (c) => {
     c.fillStyle = "#0f3346";
-    c.fillRect(0, 0, 128, 128);
+    c.fillRect(0, 0, 192, 192);
     c.strokeStyle = "rgba(120,190,210,0.18)";
     c.lineWidth = 2;
-    for (let i = 0; i < 6; i++) {
-      const y = 10 + i * 21;
+    for (let i = 0; i < 10; i++) {
+      const y = 10 + i * 19;
       c.beginPath();
       c.moveTo(0, y);
-      c.bezierCurveTo(32, y - 6, 96, y + 6, 128, y);
+      c.bezierCurveTo(48, y - 8, 144, y + 8, 192, y);
       c.stroke();
     }
   });
-  canvasTex(scene, K.tree, 180, 220, (c) => {
+  canvasTex(scene, K.tree, 220, 260, (c) => {
+    // layered trunk with roots and bark highlights
+    c.shadowColor = "rgba(0,0,0,.35)"; c.shadowBlur = 8;
     c.fillStyle = "#4a3222";
     c.beginPath();
     c.moveTo(80, 205);
@@ -458,6 +460,11 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
     c.lineTo(96, 120);
     c.lineTo(102, 205);
     c.fill();
+    c.shadowBlur = 0;
+    c.strokeStyle = "rgba(35,22,14,.55)"; c.lineWidth = 3;
+    c.beginPath(); c.moveTo(86,205); c.lineTo(88,130); c.moveTo(98,205); c.lineTo(96,125); c.stroke();
+    c.strokeStyle = "rgba(180,125,70,.35)"; c.lineWidth = 2;
+    c.beginPath(); c.moveTo(90,195); c.lineTo(92,140); c.stroke();
     // отдельные листья и световые пятна
     const blobs: [number, number, number, string][] = [
       [90, 110, 62, "#1f3d26"],
@@ -475,9 +482,12 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
       c.beginPath();
       c.arc(x, y, r, 0, TAU);
       c.fill();
+      c.fillStyle = "rgba(190,225,120,.16)"; c.beginPath(); c.arc(x-r*.28,y-r*.3,r*.28,0,TAU); c.fill();
     }
+    // foreground leaf clusters for depth
+    for (let i=0;i<20;i++){ const a=i*TAU/20; const x=90+Math.cos(a)*55; const y=92+Math.sin(a)*45; c.fillStyle=i%2?"#2d5a32":"#417545"; c.beginPath(); c.ellipse(x,y,10,5,a,0,TAU); c.fill(); }
   });
-  canvasTex(scene, K.rock, 90, 64, (c) => {
+  canvasTex(scene, K.rock, 110, 78, (c) => {
     const g = c.createLinearGradient(20, 5, 70, 60);
     g.addColorStop(0, "#9aa0a6");
     g.addColorStop(1, "#4b5157");
@@ -491,12 +501,14 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
     c.lineTo(78, 58);
     c.closePath();
     c.fill();
+    c.strokeStyle = "rgba(30,35,38,.55)"; c.lineWidth = 2; c.stroke();
     c.fillStyle = "rgba(90,130,70,0.6)";
     c.beginPath();
     c.ellipse(38, 14, 14, 5, -0.2, 0, TAU);
     c.fill();
   });
-  canvasTex(scene, K.bush, 80, 56, (c) => {
+  canvasTex(scene, K.bush, 100, 70, (c) => {
+    c.shadowColor = "rgba(0,0,0,.25)"; c.shadowBlur = 6;
     for (const [x, y, r] of [
       [24, 34, 18],
       [50, 30, 20],
@@ -509,9 +521,13 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
       c.beginPath();
       c.arc(x, y, r, 0, TAU);
       c.fill();
+      c.fillStyle = "rgba(180,225,120,.22)"; c.beginPath(); c.arc(x-4,y-5,r*.25,0,TAU); c.fill();
     }
+    c.shadowBlur = 0;
+    c.strokeStyle = "rgba(25,55,25,.5)"; c.lineWidth = 2; c.beginPath(); c.moveTo(10,52); c.quadraticCurveTo(48,62,90,48); c.stroke();
   });
   canvasTex(scene, K.campfire, 80, 50, (c) => {
+    const glow = c.createRadialGradient(40,24,2,40,24,38); glow.addColorStop(0,"rgba(255,210,90,.32)"); glow.addColorStop(1,"rgba(255,120,30,0)"); c.fillStyle=glow; c.fillRect(0,0,80,50);
     c.fillStyle = "#555a5e";
     for (let i = 0; i < 9; i++) {
       const a = (i / 9) * TAU;
@@ -564,6 +580,9 @@ export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => n
     grass.addColorStop(0, "#5c8a45");
     grass.addColorStop(1, "#3d6534");
     blob(r - 18, grass);
+    // layered shoreline foam and terrain detail
+    c.strokeStyle = "rgba(255,245,205,.18)"; c.lineWidth = 5;
+    c.beginPath(); for(let i=0;i<=140;i++){const a=i*TAU/140; const rr=r+9+Math.sin(a*9)*4; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();
     // береговая кромка и крупные пятна рельефа
     c.strokeStyle = "rgba(240,220,160,.32)"; c.lineWidth = 10;
     c.beginPath(); for(let i=0;i<=100;i++){const a=i*TAU/100;const rr=r+2+Math.sin(a*5)*5; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();
