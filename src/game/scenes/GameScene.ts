@@ -57,6 +57,7 @@ export class GameScene extends Phaser.Scene {
   private day = 1;
   private dayTime = 0;
   private campLevel = 1;
+  private campfires: Phaser.Math.Vector2[] = [];
   private weaponLevel = 1;
   private quest = { type: "gather", target: 10, progress: 0 } as { type: string; target: number; progress: number };
   private pickups!: Phaser.Physics.Arcade.Group;
@@ -95,6 +96,7 @@ export class GameScene extends Phaser.Scene {
     this.day = 1;
     this.dayTime = 0;
     this.campLevel = 1;
+    this.campfires = [];
     this.weaponLevel = 1;
     this.quest = { type: "gather", target: 10, progress: 0 };
     this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
@@ -138,6 +140,7 @@ export class GameScene extends Phaser.Scene {
 
     // Единственный стартовый объект базы — костёр.
     const campfire = this.add.image(S / 2, S / 2, K.campfire).setDepth(S / 2 - 1).setData("campfire", true);
+    this.campfires.push(new Phaser.Math.Vector2(S / 2, S / 2));
     const glow = this.add.image(S / 2, S / 2 - 10, K.glow).setScale(3).setTint(0xff9a3d).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55).setDepth(5000);
     this.tweens.add({ targets: glow, scale: 3.3, alpha: 0.7, duration: 180, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.add.particles(S / 2, S / 2 - 8, K.particle, {
@@ -180,20 +183,20 @@ export class GameScene extends Phaser.Scene {
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,J") as GameScene["keys"];
     this.registry.set("input", { x: 0, y: 0, attack: false, context: false });
     this.pushHud();
-    this.time.delayedCall(800, () => this.nextWave());
+    this.time.delayedCall(15000, () => this.nextWave());
     Platform.gameReady();
   }
 
   private pushHud() {
     const context = this.getContextAction();
-    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, sanity: this.sanity, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
+    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, sanity: this.sanity, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest, context: this.getContextAction() });
   }
 
   private nextWave() {
     if (this.over) return;
     this.wave++;
     this.game.events.emit("wave", this.wave);
-    const n = 4 + this.wave * 2;
+    const n = Math.min(5, 2 + Math.floor(this.wave / 2));
     for (let i = 0; i < n; i++) this.time.delayedCall(i * 250, () => this.spawn());
     this.pushHud();
   }
@@ -266,7 +269,7 @@ export class GameScene extends Phaser.Scene {
       if (this.quest.type === "kill") this.quest.progress = Math.min(this.quest.target, this.quest.progress + 1);
       e.s.disableBody(true, false);
       this.tweens.add({ targets: [e.s, e.shadow], alpha: 0, scaleY: 0.2, duration: 300, onComplete: () => { e.s.destroy(); e.shadow.destroy(); } });
-      if (this.enemies.length === 0) this.time.delayedCall(2000, () => this.nextWave());
+      if (this.enemies.length === 0) this.time.delayedCall(12000, () => this.nextWave());
       if (this.quest.type === "kill" && this.quest.progress >= this.quest.target) {
         this.resources.coins += 50;
         this.quest = { type: "gather", target: 12 + this.day * 3, progress: 0 };
@@ -276,25 +279,28 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getContextAction() {
-    const nearCampfire = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.center.x, this.center.y) < 130;
+    const nearCampfire = this.campfires.some(f => Phaser.Math.Distance.Between(this.player.x, this.player.y, f.x, f.y) < 130);
     const nearbyChest = this.chests.find(c => !c.getData("opened") && Phaser.Math.Distance.Between(c.x, c.y, this.player.x, this.player.y) < 105);
     if (nearbyChest) return { id: "chest", label: "ОТКРЫТЬ", hint: "Осмотреть находку" };
-    if (nearCampfire) return { id: "campfire", label: "КОСТЁР", hint: "Отдохнуть и восстановить рассудок" };
+    if (nearCampfire) return { id: "campfire", label: "ОТДОХНУТЬ", hint: "Восстановить здоровье и рассудок" };
     if (this.resources.food > 0 && this.hunger < 85) return { id: "eat", label: "СЪЕСТЬ ЕДУ", hint: "Восстановить голод" };
-    return { id: "none", label: "НЕТ ДЕЙСТВИЯ", hint: "Исследуйте мир" };
+    if (this.resources.wood >= 20 && this.resources.stone >= 10) return { id: "build", label: "РАЗЖЕЧЬ КОСТЁР", hint: "20 дерева + 10 камня" };
+    return { id: "none", label: "ИССЛЕДОВАТЬ", hint: "Собирайте ресурсы и ищите путь дальше" };
   }
 
   private contextAction() {
     const a = this.getContextAction();
     if (a.id === "chest") {
-      const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, y = x.y, this.player.x, this.player.y) < 105);
-      if (c) this.openChest(c);
+      const chest = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, x.y, this.player.x, this.player.y) < 105);
+      if (chest) this.openChest(chest);
     } else if (a.id === "eat") {
       this.eatFood();
     } else if (a.id === "campfire") {
       this.hunger = Math.min(100, this.hunger + 8);
       this.sanity = Math.min(100, this.sanity + 18);
       this.hp = Math.min(100, this.hp + 10);
+    } else if (a.id === "build") {
+      this.buildCamp();
     }
     this.pushHud();
   }
@@ -465,11 +471,20 @@ export class GameScene extends Phaser.Scene {
   }
 
   private buildCamp() {
-    const cost = { wood: 20 + this.campLevel * 10, stone: 12 + this.campLevel * 6 };
+    const cost = { wood: 20, stone: 10 };
     if (this.resources.wood < cost.wood || this.resources.stone < cost.stone) return;
-    this.resources.wood -= cost.wood; this.resources.stone -= cost.stone; this.campLevel++;
-    this.hp = Math.min(100, this.hp + 20);
-    this.hunger = Math.min(100, this.hunger + 15);
+    this.resources.wood -= cost.wood;
+    this.resources.stone -= cost.stone;
+    const x = this.player.x, y = this.player.y;
+    this.campfires.push(new Phaser.Math.Vector2(x, y));
+    const fire = this.add.image(x, y, K.campfire).setDepth(y - 1).setData("campfire", true);
+    const glow = this.add.image(x, y - 10, K.glow).setScale(3).setTint(0xff9a3d).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.5).setDepth(y + 1);
+    this.tweens.add({ targets: glow, scale: 3.3, alpha: 0.68, duration: 180, yoyo: true, repeat: -1, ease: "Sine.inOut" });
+    this.add.particles(x, y - 8, K.particle, {
+      speedY: { min: -80, max: -35 }, speedX: { min: -12, max: 12 }, lifespan: 900, frequency: 55,
+      scale: { start: 0.75, end: 0 }, tint: [0xffd27a, 0xff7a2a], blendMode: "ADD"
+    }).setDepth(y + 2);
+    this.campLevel++;
     this.pushHud();
   }
 
@@ -489,7 +504,7 @@ export class GameScene extends Phaser.Scene {
     const px = this.player.x, py = this.player.y;
     const biomes = [
       { x: this.center.x, y: this.center.y - 1500, r: 330, nightSanity: 0.20 },
-      { x: this.worldCenterX + 1120, y: this.worldCenterY - 1080, r: 320, nightSanity: 0.10 },
+      { x: this.center.x + 1120, y: this.center.y - 1080, r: 320, nightSanity: 0.10 },
       { x: this.worldCenterX + 1550, y: this.worldCenterY, r: 340, nightSanity: 0.02 },
       { x: this.worldCenterX + 1050, y: this.worldCenterY + 1150, r: 320, nightSanity: 0.08 },
       { x: this.worldCenterX, y: this.worldCenterY + 1550, r: 350, nightSanity: 0.04 },
