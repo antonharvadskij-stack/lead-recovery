@@ -41,7 +41,7 @@ window.addEventListener('unhandledrejection',function(e){
 .collect{background:linear-gradient(145deg,#ffe77f,#ffbe39)}.loot{background:linear-gradient(145deg,#86e5ff,#58c5ef)}.attack{background:linear-gradient(145deg,#ff9288,#ee6b67)}.build{background:linear-gradient(145deg,#fff,#d9dde1)}
 .panel{position:fixed;z-index:30000;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 30px));max-height:90vh;overflow:auto;padding:20px;border-radius:24px;background:rgba(7,18,30,.97);border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 90px rgba(0,0,0,.7);display:none;pointer-events:auto}
 .panel h2{margin:0 0 10px}.row{display:flex;justify-content:space-between;padding:11px 0;border-bottom:1px solid rgba(255,255,255,.08)}.panel button{border:0;border-radius:14px;padding:12px 15px;font-weight:900;background:#ffd45b;color:#111}.panel .dark{background:#17283a;color:#fff}
-#rotate{display:none;position:fixed;z-index:999;inset:0;background:linear-gradient(135deg,#06101b,#163b55);align-items:center;justify-content:center;text-align:center;padding:30px}
+#rotate{display:none;position:fixed;z-index:5000;inset:0;background:linear-gradient(135deg,#06101b,#163b55);align-items:center;justify-content:center;text-align:center;padding:30px}
 @media (orientation:portrait) and (max-width:700px){#rotate{display:flex!important}}
 .rotateCard{max-width:370px;background:rgba(7,19,31,.95);border:1px solid rgba(255,255,255,.15);border-radius:28px;padding:30px;box-shadow:0 30px 80px #0009}.rotateIcon{font-size:62px;display:block;margin-bottom:12px}.rotateCard h2{margin:0 0 8px}.rotateCard p{opacity:.78;margin:0;line-height:1.45}
 @media (orientation:landscape){.top{padding:9px 14px}.pill{padding:9px 13px}.stats{top:67px;left:14px;width:205px}.controls{bottom:11px;left:18px;right:18px}.joy{width:116px;height:116px}.stick{left:31px;top:31px}.act{width:104px;height:78px}.buttons{gap:10px}#mission{top:11px}}
@@ -167,6 +167,7 @@ function drawWater(){
  for(let row=0;row<12;row++){const yy=(row/12)*H;ctx.beginPath();for(let x=-30;x<W+40;x+=55){const y=yy+Math.sin(x*.025+performance.now()/1700+row)*5; if(x===-30)ctx.moveTo(x,y);else ctx.quadraticCurveTo(x+14,y-4,x+28,y)}ctx.stroke()}ctx.restore();
 }
 function drawTree(x,y,scale=1){
+ if(typeof x==='object'){scale=y??1;y=x.y;x=x.x}
  const px=sx(x),py=sy(y);shadow(x,y+26,28*scale,9*scale,.28);ctx.save();ctx.translate(px,py);ctx.scale(scale,scale);
  for(let k=0;k<3;k++){ctx.fillStyle=['#214b35','#2d6844','#3d7f4e'][k];ctx.beginPath();ctx.arc((k-1)*10,-22+k*4,23-k*3,0,Math.PI*2);ctx.fill();}
  ctx.fillStyle='#62442e';ctx.fillRect(-5,-12,10,34);ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(-2,-10,3,28);ctx.restore();
@@ -278,7 +279,7 @@ function drawDecor(){
   ctx.restore();
 }
 function draw(){
-  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawResourceDecor();drawWater();drawIsland();drawRuins();drawRareNodes();drawTreasures();
+  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawWater();drawIsland();drawDecor();drawResourceDecor();drawRuins();drawRareNodes();drawTreasures();
   const objs=[];
   trees.forEach(t=>objs.push({y:t.y,fn:()=>drawTree(t)}));rocks.forEach(r=>objs.push({y:r.y,fn:()=>drawRock(r)}));
   buildings.forEach(b=>objs.push({y:b.y,fn:()=>drawBuildStructure(b)}));
