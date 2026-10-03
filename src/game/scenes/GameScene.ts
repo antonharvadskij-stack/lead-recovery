@@ -539,6 +539,8 @@ export class GameScene extends Phaser.Scene {
       const dx = this.player.x - e.s.x;
       const dy = this.player.y - e.s.y;
       const dist = Math.hypot(dx, dy);
+      // Враги больше НЕ атакуют игрока автоматически.
+      // Они преследуют и наблюдают, а урон игрок получает только через явное игровое действие.
       if (!e.busy) {
         if (this.over) e.s.setVelocity(0, 0);
         else if (dist > st.range) {
@@ -547,20 +549,8 @@ export class GameScene extends Phaser.Scene {
           e.s.setFlipX(dx < 0);
         } else {
           e.s.setVelocity(0, 0);
-          if (now - e.last > st.cd) {
-            e.last = now;
-            e.busy = true;
-            const key = enemyTextureKey(e.kind, e.level);
-            e.s.play(`${key}_attack`);
-            this.time.delayedCall(200, () => {
-              if (e.s.active && Phaser.Math.Distance.Between(e.s.x, e.s.y, this.player.x, this.player.y) < st.range + 15)
-                this.hurtPlayer(Math.round(st.dmg * (1 + (e.level - 1) * 0.4)), e.s.x);
-            });
-            e.s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
-              e.busy = false;
-              if (e.s.active) e.s.play(`${key}_walk`);
-            });
-          }
+          e.s.setFlipX(dx < 0);
+          // Вблизи враг лишь наблюдает: никакого самостоятельного удара.
         }
       }
       this.clamp(e.s);
