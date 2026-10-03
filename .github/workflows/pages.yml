@@ -1,41 +1,34 @@
 name: Deploy NEVERENDING GAME
 on:
   push:
-    branches: [main, neverending-phaser]
+    branches: [neverending-phaser]
   workflow_dispatch:
 permissions:
   contents: read
   pages: write
   id-token: write
-concurrency:
-  group: pages-deploy-v4
-  cancel-in-progress: true
 jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
+      - uses: actions/configure-pages@v5
+      - run: bun install
+      - run: bun run build
+      - run: |
+          mkdir -p _site
+          if [ -d dist/client ]; then cp -R dist/client/. _site/; else cp -R dist/. _site/; fi
+          touch _site/.nojekyll
+      - uses: actions/upload-pages-artifact@v4
+        with:
+          path: _site
   deploy:
-    permissions:
-      contents: read
-      pages: write
-      id-token: write
+    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
-      - uses: actions/checkout@v6
-      - uses: oven-sh/setup-bun@v2
-      - uses: actions/configure-pages@v5
-      - name: Install dependencies
-        run: bun install
-      - name: Build application
-        run: bun run build
-      - name: Prepare Pages artifact
-        run: |
-          mkdir -p _site
-          if [ -d dist/client ]; then cp -R dist/client/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; else echo "No static build output"; exit 1; fi
-          touch _site/.nojekyll
-      - uses: actions/upload-pages-artifact@v4
-        with:
-          path: '_site'
-      - name: Deploy
-        id: deployment
+      - id: deployment
         uses: actions/deploy-pages@v4
