@@ -9,7 +9,7 @@
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111c;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;touch-action:none}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#07111c}
-#hud{position:fixed;inset:0;pointer-events:none;z-index:10}
+#hud{position:fixed;inset:0;pointer-events:none;z-index:1000}
 .top{display:flex;gap:10px;align-items:center;padding:10px 12px}
 .pill{pointer-events:auto;background:linear-gradient(180deg,rgba(20,42,62,.94),rgba(6,17,29,.94));border:1px solid rgba(255,255,255,.16);border-radius:18px;padding:10px 14px;font-weight:900;box-shadow:0 8px 24px rgba(0,0,0,.3),inset 0 1px rgba(255,255,255,.1);backdrop-filter:blur(8px)}
 .menu{margin-left:auto;width:50px;height:50px;padding:0;font-size:23px}
@@ -17,11 +17,11 @@
 .stats{position:absolute;top:72px;left:12px;width:190px;padding:12px 13px;border-radius:20px;background:linear-gradient(180deg,rgba(11,31,47,.94),rgba(5,15,26,.94));border:1px solid rgba(255,255,255,.13);box-shadow:0 15px 40px rgba(0,0,0,.35);backdrop-filter:blur(9px)}
 .stat{margin-bottom:7px}.stat:last-child{margin-bottom:0}.statline{display:flex;justify-content:space-between;font-weight:850;font-size:14px}.bar{height:9px;background:rgba(0,0,0,.45);border-radius:9px;overflow:hidden;margin-top:4px}.fill{height:100%;border-radius:9px;transition:width .2s}.hp{background:linear-gradient(90deg,#ff5363,#ff7883)}.en{background:linear-gradient(90deg,#ffbd3f,#ffe36a)}.hu{background:linear-gradient(90deg,#52d68a,#8af0b2)}
 #toast{position:absolute;top:105px;left:50%;transform:translateX(-50%);display:none;padding:9px 14px;border-radius:14px;background:#ffd45b;color:#10151b;font-weight:950;box-shadow:0 10px 30px rgba(0,0,0,.35)}
-.controls{position:absolute;left:14px;z-index:30;pointer-events:auto;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:end}
-.joy{width:122px;height:122px;border-radius:50%;background:radial-gradient(circle at 50% 45%,rgba(90,126,153,.62) 0 28%,rgba(15,34,51,.72) 29% 100%);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 0 35px rgba(0,0,0,.55),0 12px 30px rgba(0,0,0,.35);pointer-events:auto;position:relative}
+.controls{position:absolute;left:14px;z-index:3000;pointer-events:auto;touch-action:none;right:14px;bottom:12px;display:flex;justify-content:space-between;align-items:end}
+.joy{z-index:3002;touch-action:none;width:122px;height:122px;border-radius:50%;background:radial-gradient(circle at 50% 45%,rgba(90,126,153,.62) 0 28%,rgba(15,34,51,.72) 29% 100%);border:1px solid rgba(255,255,255,.2);box-shadow:inset 0 0 35px rgba(0,0,0,.55),0 12px 30px rgba(0,0,0,.35);pointer-events:auto;position:relative}
 .stick{position:absolute;width:54px;height:54px;left:33px;top:33px;border-radius:50%;background:radial-gradient(circle at 35% 28%,#e9f9ff,#94aebe 58%,#657886);border:1px solid rgba(255,255,255,.65);box-shadow:0 7px 16px rgba(0,0,0,.45)}
-.buttons{display:flex;gap:9px;pointer-events:auto}
-.act{pointer-events:auto;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;width:92px;height:78px;border:1px solid rgba(255,255,255,.28);border-radius:23px;font-size:15px;font-weight:1000;color:#111;box-shadow:0 11px 24px rgba(0,0,0,.34),inset 0 2px rgba(255,255,255,.55);transition:transform .08s,filter .08s}
+.buttons{display:flex;gap:9px;pointer-events:auto;touch-action:none;position:relative;z-index:3001}
+.act{position:relative;z-index:3002;pointer-events:auto;touch-action:none;touch-action:manipulation;user-select:none;-webkit-user-select:none;-webkit-tap-highlight-color:transparent;width:92px;height:78px;border:1px solid rgba(255,255,255,.28);border-radius:23px;font-size:15px;font-weight:1000;color:#111;box-shadow:0 11px 24px rgba(0,0,0,.34),inset 0 2px rgba(255,255,255,.55);transition:transform .08s,filter .08s}
 .act:active{transform:translateY(2px) scale(.96);filter:brightness(1.08)}
 .collect{background:linear-gradient(145deg,#ffe77f,#ffbe39)}.loot{background:linear-gradient(145deg,#86e5ff,#58c5ef)}.attack{background:linear-gradient(145deg,#ff9288,#ee6b67)}.build{background:linear-gradient(145deg,#fff,#d9dde1)}
 .panel{position:fixed;z-index:20;left:50%;top:50%;transform:translate(-50%,-50%);width:min(520px,calc(100% - 30px));max-height:90vh;overflow:auto;padding:20px;border-radius:24px;background:rgba(7,18,30,.97);border:1px solid rgba(255,255,255,.18);box-shadow:0 30px 90px rgba(0,0,0,.7);display:none;pointer-events:auto}
@@ -307,23 +307,38 @@ const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:doBuild};
 function bindAction(id,fn){
   const el=document.getElementById(id);
   if(!el)return;
-  const fire=e=>{e.preventDefault();e.stopPropagation();fn();};
-  el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();},{passive:false});
+  const fire=e=>{if(e){e.preventDefault();e.stopPropagation()} fn()};
   el.addEventListener('pointerup',fire,{passive:false});
-  el.addEventListener('click',fire,{passive:false});
   el.addEventListener('touchend',fire,{passive:false});
+  el.addEventListener('click',fire,{passive:false});
 }
 Object.entries(actionMap).forEach(([id,fn])=>bindAction(id,fn));
-document.getElementById('menu').addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();document.getElementById('panel').style.display='block'},{passive:false});
-document.getElementById('closePanel').addEventListener('pointerup',e=>{e.preventDefault();document.getElementById('panel').style.display='none'},{passive:false});
-document.getElementById('reset').addEventListener('pointerup',e=>{e.preventDefault();location.reload()},{passive:false});
-
 addEventListener('keydown',e=>{keys[e.key.toLowerCase()]=true;if(e.key===' '){e.preventDefault();doAttack()}});addEventListener('keyup',e=>keys[e.key.toLowerCase()]=false);
 
 const joyEl=document.getElementById('joy'),stick=document.getElementById('stick');
-function joyMove(e){const r=joyEl.getBoundingClientRect(),p=e.touches?e.touches[0]:e;let dx=p.clientX-(r.left+r.width/2),dy=p.clientY-(r.top+r.height/2),m=Math.hypot(dx,dy),max=r.width*.36;if(m>max){dx=dx/m*max;dy=dy/m*max}joystick.x=dx/max;joystick.y=dy/max;stick.style.transform='translate('+dx+'px,'+dy+'px)'}
-function joyStart(e){joystick.active=true;joyMove(e);e.preventDefault()}function joyEnd(){joystick.active=false;joystick.x=0;joystick.y=0;stick.style.transform='translate(0,0)'}
-joyEl.addEventListener('touchstart',joyStart,{passive:false});joyEl.addEventListener('touchmove',e=>{if(joystick.active)joyMove(e)},{passive:false});joyEl.addEventListener('touchend',joyEnd);joyEl.addEventListener('mousedown',joyStart);addEventListener('mousemove',e=>{if(joystick.active)joyMove(e)});addEventListener('mouseup',joyEnd);
+function joyMove(e){
+  const r=joyEl.getBoundingClientRect();
+  const p=e.touches?e.touches[0]:e;
+  let dx=p.clientX-(r.left+r.width/2),dy=p.clientY-(r.top+r.height/2);
+  const max=r.width*.36,m=Math.hypot(dx,dy);
+  if(m>max){dx=dx/m*max;dy=dy/m*max}
+  joystick.x=dx/max;joystick.y=dy/max;
+  stick.style.transform='translate('+dx+'px,'+dy+'px)';
+}
+function joyStart(e){
+  joystick.active=true;
+  try{joyEl.setPointerCapture?.(e.pointerId)}catch(_){}
+  joyMove(e);e.preventDefault();e.stopPropagation();
+}
+function joyEnd(e){
+  joystick.active=false;joystick.x=0;joystick.y=0;stick.style.transform='translate(0,0)';
+  try{if(e)joyEl.releasePointerCapture?.(e.pointerId)}catch(_){}
+}
+joyEl.addEventListener('pointerdown',joyStart,{passive:false});
+joyEl.addEventListener('pointermove',e=>{if(joystick.active)joyMove(e)},{passive:false});
+joyEl.addEventListener('pointerup',joyEnd,{passive:false});
+joyEl.addEventListener('pointercancel',joyEnd,{passive:false});
+
 
 updateUI();
 })();
