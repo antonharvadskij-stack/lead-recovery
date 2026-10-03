@@ -1,7 +1,7 @@
 name: Deploy NEVERENDING GAME
 on:
   push:
-    branches: [neverending-phaser]
+    branches: [main]
   workflow_dispatch:
 permissions:
   contents: read
