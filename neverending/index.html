@@ -304,31 +304,12 @@ function update(dt){
   updateEffects(dt);
   if(gameOver){draw();return}
   applyBuildingProduction(dt);const v=input();const speed=155;worldTime+=dt;updateZone();attackCooldown=Math.max(0,attackCooldown-dt);
-  if(v.m>.05&&state.en>0){
-    const nx=player.x+v.x*speed*v.m*dt,ny=player.y+v.y*speed*v.m*dt;
-    if(onIsland(nx,ny)){player.x=nx;player.y=ny;const newZone=currentZone();if(newZone>state.zone){if((newZone===2&&state.level>=2)||(newZone===3&&state.level>=4)){state.zone=newZone;toast(newZone===2?'🌲 Дикий лес открыт!':'💀 Заражённые земли открыты!');saveGame()}else{player.x-=v.x*speed*v.m*dt;player.y-=v.y*speed*v.m*dt;toast('🔒 Регион закрыт · нужен уровень '+(newZone===2?2:4))}}}else{toast('🌊 Дальше только вода');state.en=Math.max(0,state.en-dt*.5)}
-    player.dir=Math.atan2(v.y,v.x);
-    state.en=Math.max(0,state.en-dt*(.19*(100/state.maxEn)));
-  }else state.en=Math.min(state.maxEn,state.en+dt*3.8);
-  state.hunger=Math.max(0,state.hunger-dt*.022);
-  if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
-  // Health recovery: food keeps the survivor alive, while built shelters/campfires provide stronger regeneration.
-  let hpRegen=0;
-  if(state.hunger>65)hpRegen+=0.18;
-  for(const b of buildings){if(dist(b,player)<125){if(b.type==='camp')hpRegen+=1.15;if(b.type==='hut')hpRegen+=0.45;if(b.type==='farm')hpRegen+=0.12}}
-  if(state.hp<state.maxHp&&hpRegen>0)state.hp=Math.min(state.maxHp,state.hp+hpRegen*dt);
-  player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
-  // Camera and every world object use the same world coordinates.
-  // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.
-  cam.x=player.x;cam.y=player.y;
-  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='champion'?64:e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=Math.max(1,Math.round((e.type==='brute'?6:3)*(1-state.armor*.2)));state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.18;if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';document.getElementById('gameOverText').textContent='Вы погибли на '+state.day+' дне · побед: '+state.kills+' · монет: '+state.coins;saveGame()}}}}
-  // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
-  if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
-    let alive=enemies.filter(e=>e.alive).length;
-    if(alive<12){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||dist({x,y},player)<420);enemies.push({x,y,r:20,hp:(alive%3===0?5:3)+Math.floor(state.level/4),max:(alive%3===0?5:3)+Math.floor(state.level/4),spd:rnd(22,34)+state.level,phase:rnd(0,6),alive:true,type:Math.random()<.28?'brute':'raider'});toast('👹 В лесу появился новый враг')}
-  }
-  player.attack=Math.max(0,player.attack-dt);player.hit=Math.max(0,player.hit-dt);
-  const cycle=worldTime%60;night=cycle>42?Math.min(1,(cycle-42)/8):cycle<8?Math.max(0,(8-cycle)/8):0;const newDay=Math.floor(worldTime/60)+1;if(newDay!==state.day){state.day=newDay;state.level=Math.max(state.level,1+Math.floor((newDay-1)/2));toast('🌅 Наступил день '+state.day);saveGame()}
+  if(v.m>.05&&state.en>0){const nx=player.x+v.x*speed*v.m*dt,ny=player.y+v.y*speed*v.m*dt;if(onIsland(nx,ny)){player.x=nx;player.y=ny;const newZone=currentZone();if(newZone>state.zone){if((newZone===2&&state.level>=2)||(newZone===3&&state.level>=4)){state.zone=newZone;toast(newZone===2?'🌲 Дикий лес открыт!':'💀 Заражённые земли открыты!');saveGame()}else{player.x-=v.x*speed*v.m*dt;player.y-=v.y*speed*v.m*dt}}}player.dir=Math.atan2(v.y,v.x);state.en=Math.max(0,state.en-dt*.19)}else state.en=Math.min(state.maxEn,state.en+dt*3.8);
+  state.hunger=Math.max(0,state.hunger-dt*.022);if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
+  let hpRegen=state.hunger>65?.18:0;for(const b of buildings){if(dist(b,player)<125){if(b.type==='camp')hpRegen+=1.15;if(b.type==='hut')hpRegen+=.45;if(b.type==='farm')hpRegen+=.12}}if(state.hp<state.maxHp)state.hp=Math.min(state.maxHp,state.hp+hpRegen*dt);
+  player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));cam.x=player.x;cam.y=player.y;
+  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player),reach=e.type==='champion'?64:e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=Math.max(1,Math.round((e.type==='brute'?6:3)*(1-state.armor*.2)));state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';saveGame()}}}}
+  player.attack=Math.max(0,player.attack-dt);player.hit=Math.max(0,player.hit-dt);const cycle=worldTime%60;night=cycle>42?Math.min(1,(cycle-42)/8):cycle<8?Math.max(0,(8-cycle)/8):0;const newDay=Math.floor(worldTime/60)+1;if(newDay!==state.day){state.day=newDay;state.level=Math.max(state.level,1+Math.floor((newDay-1)/2));saveGame()}
   draw();updateUI();
 }
 function emergencyRender(){
