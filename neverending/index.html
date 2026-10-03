@@ -349,10 +349,13 @@ function loop(now){
   requestAnimationFrame(loop);
 }
 async function initYandex(){try{if(window.YaGames){ysdk=await YaGames.init();if(ysdk?.features?.LoadingAPI)ysdk.features.LoadingAPI.ready();if(ysdk?.features?.GameplayAPI)ysdk.features.GameplayAPI.start()}}catch(e){console.log("Yandex SDK unavailable",e)}}
-safeSceneRender();
+function startGameNow(){
+  try{safeSceneRender();updateUI();document.body.classList.add('game-ready');requestAnimationFrame(loop);}
+  catch(e){console.error(e)}
+}
+startGameNow();
 initYandex();
 setInterval(()=>{if(!gameOver)saveGame()},10000);
-requestAnimationFrame(loop);
 
 function respawnResource(kind){setTimeout(()=>{let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<220);if(kind==="tree")trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:Date.now()});else rocks.push({x,y,s:rnd(.75,1.2),hp:2})},25000)}
 function doCollect(){
