@@ -273,7 +273,7 @@ function doCollect(){
   else toast('Подойдите ближе к ресурсу');
 }
 function doLoot(){
-  const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);state.hp=Math.min(state.maxHp,state.hp+12);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · +12 ❤️");saveGame();return}
+  const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · без лечения");saveGame();return}
   if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
   toast("Нужен сундук или 5 монет на еду");
 }
@@ -313,7 +313,7 @@ function buyUpgrade(kind){
  if(state.coins<data[0]){toast('Нужно '+data[0]+' монет');return}
  state.coins-=data[0];state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
 }
-document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').onclick=openUpgrades;if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=()=>q('upgradePanel').style.display='none';if(q('buildClose'))q('buildClose').onclick=()=>q('buildPanel').style.display='none';['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
+document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').onclick=openUpgrades;if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=()=>q('upgradePanel').style.display='none';if(q('buildClose'))q('buildClose').onclick=()=>q('buildPanel').style.display='none';if(q('menu'))q('menu').onclick=()=>q('panel').style.display='block';if(q('closePanel'))q('closePanel').onclick=()=>q('panel').style.display='none';if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
 document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:()=>document.getElementById('buildPanel').style.display='block'};
 function bindAction(id,fn){
