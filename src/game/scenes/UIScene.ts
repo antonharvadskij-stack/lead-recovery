@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
-type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean };
+type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
 const FONT = { fontFamily: "Georgia, serif", color: "#efe2b8", stroke: "#0a0f18", strokeThickness: 4 };
 
 /** HUD, сенсорный джойстик и кнопка атаки. */
@@ -24,7 +24,15 @@ export class UIScene extends Phaser.Scene {
     this.add.image(W / 2, H / 2, K.vignette);
     this.add.text(24, 16, "NEVERENDING", { ...FONT, fontSize: "28px" });
     this.hpBar = this.add.graphics();
-    this.info = this.add.text(24, 84, "", { ...FONT, fontFamily: "sans-serif", fontSize: "18px" });
+    this.info = this.add.text(24, 84, "", { ...FONT, fontFamily: "sans-serif", fontSize: "17px" });
+    const actions = [
+      ["Еда", W - 250, H - 62, "eat"], ["Лагерь", W - 180, H - 62, "build"], ["Оружие", W - 105, H - 62, "upgrade"],
+    ];
+    for (const [label, x, y, action] of actions as [string, number, number, string][]) {
+      const b = this.add.rectangle(x, y, 86, 42, 0x172838, 0.9).setStrokeStyle(2, 0xd8b66a, 0.7).setInteractive();
+      this.add.text(x, y, label, { fontFamily: "sans-serif", fontSize: "13px", color: "#efe2b8" }).setOrigin(0.5);
+      b.on("pointerdown", () => { const i = this.input_() as any; i[action] = true; });
+    }
     this.add.text(W - 20, H - 14, "WASD — движение · Пробел — атака", { fontFamily: "sans-serif", fontSize: "14px", color: "#9fb4bf" }).setOrigin(1, 1);
 
     const waveText = this.add.text(W / 2, H * 0.28, "", { ...FONT, fontSize: "56px" }).setOrigin(0.5).setAlpha(0);
@@ -99,7 +107,8 @@ export class UIScene extends Phaser.Scene {
     const g = this.hpBar.clear();
     g.fillStyle(0x000000, 0.55).fillRoundedRect(22, 56, 264, 22, 6);
     g.fillStyle(h.hp > 30 ? 0xd94a3a : 0xff2a2a).fillRoundedRect(25, 59, 258 * (h.hp / h.maxHp), 16, 5);
-    this.info.setText(`Здоровье ${h.hp}   ·   Волна ${h.wave}   ·   Убито ${h.kills}   ·   Врагов ${h.alive}`);
+    const q = h.quest ? ` · Задание: ${h.quest.progress}/${h.quest.target}` : "";
+    this.info.setText(`HP ${h.hp}   ·   Голод ${Math.round(h.hunger ?? 100)}%   ·   День ${h.day ?? 1}\nДерево ${h.wood ?? 0}  Камень ${h.stone ?? 0}  Еда ${h.food ?? 0}  Монеты ${h.coins ?? 0}   ·   Лагерь ${h.campLevel ?? 1}  Оружие ${h.weaponLevel ?? 1}${q}`);
     if (h.over && !this.overBox.visible) {
       (this.overBox.getData("stats") as Phaser.GameObjects.Text).setText(`Волна ${h.wave} · Убито врагов: ${h.kills}`);
       this.overBox.setVisible(true);
