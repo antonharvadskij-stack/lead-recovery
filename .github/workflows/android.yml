@@ -1,31 +1,158 @@
-name: Build Neon Drop Android APK
+name: Build NEVERENDING Android APK
+
 on:
   workflow_dispatch:
   push:
     paths:
-      - 'game/**'
+      - 'neverending/**'
       - 'capacitor.config.json'
       - '.github/workflows/android.yml'
+
 jobs:
   build:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-node@v4
         with:
           node-version: 20
+
       - run: npm init -y
-      - run: npm install @capacitor/core @capacitor/cli @capacitor/android
-      - run: rm -rf dist && mkdir dist && cp -r game/* dist/
+      - run: npm install @capacitor/core@latest @capacitor/cli@latest @capacitor/android@latest
+
+      - name: Prepare web bundle
+        run: rm -rf dist && mkdir dist && cp -r neverending/* dist/
+
       - run: npx cap add android
       - run: npx cap sync android
+
+      - name: Add Yandex Mobile Ads SDK
+        run: |
+          python3 - <<'PY'
+          from pathlib import Path
+          p=Path("android/app/build.gradle")
+          s=p.read_text()
+          if "com.yandex.android:mobileads" not in s:
+              s=s.replace("dependencies {", "dependencies {\n    implementation 'com.yandex.android:mobileads:8.5.0'")
+          p.write_text(s)
+          PY
+
+      - name: Add native rewarded-ad bridge
+        run: |
+          mkdir -p android/app/src/main/java/com/neverending/survival
+          cat > android/app/src/main/java/com/neverending/survival/MainActivity.java <<'JAVA'
+          package com.neverending.survival;
+
+          import android.os.Bundle;
+          import android.webkit.JavascriptInterface;
+          import com.getcapacitor.BridgeActivity;
+          import com.yandex.mobile.ads.common.AdRequest;
+          import com.yandex.mobile.ads.common.AdRequestError;
+          import com.yandex.mobile.ads.common.AdError;
+          import com.yandex.mobile.ads.rewarded.Reward;
+          import com.yandex.mobile.ads.rewarded.RewardedAd;
+          import com.yandex.mobile.ads.rewarded.RewardedAdEventListener;
+          import com.yandex.mobile.ads.rewarded.RewardedAdLoadListener;
+          import com.yandex.mobile.ads.rewarded.RewardedAdLoader;
+
+          public class MainActivity extends BridgeActivity {
+              private RewardedAd rewardedAd;
+              private RewardedAdLoader rewardedAdLoader;
+              private static final String DEMO_REWARDED_ID = "demo-rewarded-yandex";
+
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  super.onCreate(savedInstanceState);
+                  if (bridge != null && bridge.getWebView() != null) {
+                      bridge.getWebView().getSettings().setJavaScriptEnabled(true);
+                      bridge.getWebView().addJavascriptInterface(new AdBridge(), "Android");
+                  }
+                  loadRewardedAd();
+              }
+
+              private void loadRewardedAd() {
+                  runOnUiThread(() -> {
+                      if (rewardedAdLoader == null) {
+                          rewardedAdLoader = new RewardedAdLoader(this);
+                      }
+                      rewardedAdLoader.loadAd(
+                          new AdRequest.Builder(DEMO_REWARDED_ID).build(),
+                          new RewardedAdLoadListener() {
+                              @Override
+                              public void onAdLoaded(RewardedAd ad) {
+                                  rewardedAd = ad;
+                              }
+
+                              @Override
+                              public void onAdFailedToLoad(AdRequestError error) {
+                                  rewardedAd = null;
+                              }
+                          }
+                      );
+                  });
+              }
+
+              private void showRewardedAd() {
+                  runOnUiThread(() -> {
+                      if (rewardedAd == null) {
+                          loadRewardedAd();
+                          evaluate("window.toast&&window.toast('Реклама ещё загружается')");
+                          return;
+                      }
+                      rewardedAd.setAdEventListener(new RewardedAdEventListener() {
+                          @Override public void onAdShown() {}
+                          @Override public void onAdFailedToShow(AdError error) {
+                              cleanupAndReload();
+                          }
+                          @Override public void onAdDismissed() {
+                              cleanupAndReload();
+                          }
+                          @Override public void onAdClicked() {}
+                          @Override public void onAdImpression(com.yandex.mobile.ads.common.ImpressionData data) {}
+                          @Override public void onRewarded(Reward reward) {
+                              evaluate("window.onNativeRewarded&&window.onNativeRewarded()");
+                          }
+                      });
+                      rewardedAd.show(this);
+                  });
+              }
+
+              private void cleanupAndReload() {
+                  if (rewardedAd != null) rewardedAd.setAdEventListener(null);
+                  rewardedAd = null;
+                  loadRewardedAd();
+              }
+
+              private void evaluate(String js) {
+                  if (bridge != null && bridge.getWebView() != null) {
+                      bridge.getWebView().post(() -> bridge.getWebView().evaluateJavascript(js, null));
+                  }
+              }
+
+              public class AdBridge {
+                  @JavascriptInterface
+                  public void showRewardedAd() {
+                      showRewardedAd();
+                  }
+              }
+          }
+          JAVA
+
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: 17
+
       - uses: android-actions/setup-android@v3
-      - run: chmod +x android/gradlew && cd android && ./gradlew assembleDebug
+
+      - name: Build debug APK
+        run: |
+          chmod +x android/gradlew
+          cd android
+          ./gradlew assembleDebug
+
       - uses: actions/upload-artifact@v4
         with:
-          name: neon-drop-debug-apk
+          name: NEVERENDING-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
