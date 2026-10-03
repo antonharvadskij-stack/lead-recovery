@@ -82,7 +82,7 @@ window.addEventListener('unhandledrejection',function(e){
   <div class="row"><span>🪨 Камень</span><b id="pStone">10</b></div>
   <div class="row"><span>🪙 Монеты</span><b id="pCoins">100</b></div>
   <div class="row"><span>🌲 Собрано деревьев</span><b id="pTrees">0</b></div>
-  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="openUpgrades">⚒️ Улучшения</button><button id="reset">Новая игра</button></div>
+  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="openUpgrades">⚒️ Улучшения</button><button id="shop">🛒 Магазин</button><button id="food">🥩 Еда</button><button id="reset">Новая игра</button></div>
 </div>
 <script>
 (() => {
@@ -275,7 +275,7 @@ function doCollect(){
 }
 function useFood(){if(state.food>0){state.food--;state.hunger=Math.min(100,state.hunger+35);state.hp=Math.min(state.maxHp,state.hp+5);state.en=Math.min(state.maxEn,state.en+15);toast('🥩 Еда использована · +5 ❤️');saveGame()}else toast('Нет запасов еды')}\nfunction buyItem(kind){const d={sword:[120,'weapon',1],armor:[150,'armor',1],food:[15,'food',1]}[kind];if(state.coins<d[0]){toast('Нужно '+d[0]+' 🪙');return}state.coins-=d[0];state[d[1]]+=d[2];toast('Куплено');saveGame();updateUI()}\nfunction doLoot(){
   const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · без лечения");saveGame();return}
-  if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
+  if(state.food>0){useFood();return}if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
   toast("Нужен сундук или 5 монет на еду");
 }
 function doAttack(){
