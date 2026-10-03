@@ -555,6 +555,7 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
 
 /** Карта острова: песок, трава, тропинки, пятна. Рисуется в половинном масштабе. */
 export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => number) {
+  if (scene.textures.exists(K.island)) scene.textures.remove(K.island);
   const half = radius + 80;
   const size = half; // canvas = половина мира острова
   canvasTex(scene, K.island, size, size, (c) => {
@@ -580,6 +581,33 @@ export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => n
     grass.addColorStop(0, "#5c8a45");
     grass.addColorStop(1, "#3d6534");
     blob(r - 18, grass);
+
+    // Реальные визуальные биомы: большие нерегулярные пятна на самой суше.
+    const biomePatches = [
+      { x: 0, y: -0.62, rx: 0.28, ry: 0.18, col: "rgba(70,95,82,0.58)" },   // болота
+      { x: 0.46, y: -0.43, rx: 0.25, ry: 0.22, col: "rgba(34,70,43,0.62)" }, // чёрный лес
+      { x: 0.66, y: 0, rx: 0.20, ry: 0.28, col: "rgba(130,120,105,0.60)" },   // берег
+      { x: 0.42, y: 0.48, rx: 0.27, ry: 0.20, col: "rgba(105,75,65,0.62)" },  // пустоши
+      { x: 0, y: 0.64, rx: 0.30, ry: 0.18, col: "rgba(105,130,65,0.58)" },    // поля
+      { x: -0.46, y: 0.45, rx: 0.25, ry: 0.20, col: "rgba(50,78,65,0.62)" },  // гниющее болото
+      { x: -0.66, y: 0, rx: 0.20, ry: 0.27, col: "rgba(105,96,110,0.60)" },   // руины
+      { x: -0.44, y: -0.44, rx: 0.25, ry: 0.22, col: "rgba(82,55,105,0.60)" },// искажённая роща
+    ];
+    for (const b of biomePatches) {
+      const bx = cx + b.x * r, by = cx + b.y * r;
+      c.save();
+      c.globalAlpha = 1;
+      c.fillStyle = b.col;
+      c.beginPath();
+      for (let j = 0; j <= 32; j++) {
+        const a = j * TAU / 32;
+        const wobble = 0.82 + Math.sin(a * 5 + b.x * 9) * 0.10 + Math.sin(a * 9) * 0.06;
+        const px = bx + Math.cos(a) * r * b.rx * wobble;
+        const py = by + Math.sin(a) * r * b.ry * wobble;
+        if (j === 0) c.moveTo(px, py); else c.lineTo(px, py);
+      }
+      c.closePath(); c.fill(); c.restore();
+    }
     // layered shoreline foam and terrain detail
     c.strokeStyle = "rgba(255,245,205,.18)"; c.lineWidth = 5;
     c.beginPath(); for(let i=0;i<=140;i++){const a=i*TAU/140; const rr=r+9+Math.sin(a*9)*4; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();
