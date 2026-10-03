@@ -222,7 +222,9 @@ function update(dt){
   state.hunger=Math.max(0,state.hunger-dt*.022);
   if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
   player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
-  // Camera and every world object use the same world coordinates.\n  // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.\n  cam.x=player.x;cam.y=player.y;
+  // Camera and every world object use the same world coordinates.
+  // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.
+  cam.x=player.x;cam.y=player.y;
   for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=e.type==='brute'?6:3;state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.28}}}
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
