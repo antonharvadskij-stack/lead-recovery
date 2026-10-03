@@ -23,6 +23,12 @@ jobs:
           touch _site/.nojekyll
           cp _site/index.html _site/404.html
           if [ ! -f _site/index.html ]; then echo "No index.html in Pages artifact"; exit 1; fi
+          echo "=== BUILT INDEX ==="
+          cat _site/index.html
+          grep -q "/lead-recovery/assets/" _site/index.html
+          ! grep -q "/src/main.tsx" _site/index.html
+          test -n "$(find _site/assets -type f -name "*.js" -print -quit)"
+          grep -Rql "GameCanvas\|phaser" _site/assets --include="*.js"
       - uses: actions/upload-pages-artifact@v4
         with:
           path: _site
