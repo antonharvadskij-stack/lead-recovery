@@ -4,6 +4,14 @@ import { ATTACK_FRAMES, CHAR_FRAME, TEXTURE_KEYS as K, WALK_FRAMES, enemyTexture
 type Ctx = CanvasRenderingContext2D;
 const TAU = Math.PI * 2;
 
+function detail(c: Ctx, x: number, y: number, r: number, col: string, a = 1) {
+  c.save(); c.globalAlpha = a; c.fillStyle = col;
+  c.beginPath(); c.arc(x, y, r, 0, TAU); c.fill(); c.restore();
+}
+function outline(c: Ctx, draw: () => void) {
+  c.save(); c.shadowColor = "rgba(0,0,0,.45)"; c.shadowBlur = 3; draw(); c.restore();
+}
+
 function canvasTex(scene: Phaser.Scene, key: string, w: number, h: number, draw: (c: Ctx) => void) {
   if (scene.textures.exists(key)) return null;
   const tex = scene.textures.createCanvas(key, w, h);
@@ -440,6 +448,7 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
     c.lineTo(96, 120);
     c.lineTo(102, 205);
     c.fill();
+    // отдельные листья и световые пятна
     const blobs: [number, number, number, string][] = [
       [90, 110, 62, "#1f3d26"],
       [60, 95, 44, "#25492c"],
@@ -545,7 +554,7 @@ export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => n
     grass.addColorStop(0, "#5c8a45");
     grass.addColorStop(1, "#3d6534");
     blob(r - 18, grass);
-    for (let i = 0; i < 260; i++) {
+    // береговая кромка и крупные пятна рельефа\n    c.strokeStyle = "rgba(240,220,160,.32)"; c.lineWidth = 10;\n    c.beginPath(); for(let i=0;i<=100;i++){const a=i*TAU/100;const rr=r+2+Math.sin(a*5)*5; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();\n    for (let i = 0; i < 260; i++) {
       const a = rng() * TAU;
       const d = Math.sqrt(rng()) * (r - 40);
       const rr = 6 + rng() * 26;
