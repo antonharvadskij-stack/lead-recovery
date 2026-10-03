@@ -40,19 +40,23 @@ export class UIScene extends Phaser.Scene {
     this.add.text(W - 20, H - 14, "Джойстик — движение · Удар — атака · Меню — база", { fontFamily: "sans-serif", fontSize: "14px", color: "#9fb4bf" }).setOrigin(1, 1);
 
     // Полноценное меню управления базой и прогрессией.
-    const mbg = this.add.rectangle(0, 0, 430, 470, 0x0a1420, 0.96).setStrokeStyle(3, 0xd8b66a, 0.85);
-    const mtitle = this.add.text(0, -205, "ЛАГЕРЬ", { ...FONT, fontSize: "30px" }).setOrigin(0.5);
-    const mdesc = this.add.text(0, -162, "Строй, улучшай и готовься к ночи", { fontFamily: "sans-serif", fontSize: "16px", color: "#b7c5c9" }).setOrigin(0.5);
+    const mbg = this.add.rectangle(0, 0, 430, 500, 0x0a1420, 0.96).setStrokeStyle(3, 0xd8b66a, 0.85);
+    const mtitle = this.add.text(0, -225, "ЛАГЕРЬ", { ...FONT, fontSize: "30px" }).setOrigin(0.5);
+    const mdesc = this.add.text(0, -188, "Строй, улучшай и готовься к ночи", { fontFamily: "sans-serif", fontSize: "16px", color: "#b7c5c9" }).setOrigin(0.5);
     const menuItems: Array<[string,string,number]> = [
       ["Построить лагерь", "build", 0],
       ["Улучшить оружие", "upgrade", 1],
       ["Собрать еду", "eat", 2],
       ["Крафт мастерской", "craft", 3],
-      ["Закрыть", "close", 4],
+      ["Улучшить ферму", "farm", 4],
+      ["Улучшить мастерскую", "workshop", 5],
+      ["Улучшить стену", "wall", 6],
+      ["Улучшить башню", "tower", 7],
+      ["Закрыть", "close", 8],
     ];
     const menuButtons: Phaser.GameObjects.GameObject[] = [mbg, mtitle, mdesc];
     menuItems.forEach(([label, action, idx]) => {
-      const y = -105 + idx * 58;
+      const y = -105 + idx * 40;
       const b = this.add.rectangle(0, y, 300, 46, 0x172838, 1).setStrokeStyle(2, 0x6f8792, 0.8).setInteractive();
       const t = this.add.text(0, y, label, { fontFamily: "sans-serif", fontSize: "17px", color: "#efe2b8" }).setOrigin(0.5);
       b.on("pointerdown", () => {
