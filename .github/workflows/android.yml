@@ -156,7 +156,22 @@ jobs:
           cd android
           ./gradlew assembleDebug
 
+      - name: Build release APK and AAB
+        run: |
+          cd android
+          ./gradlew assembleRelease bundleRelease
+
       - uses: actions/upload-artifact@v4
         with:
           name: NEVERENDING-debug-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NEVERENDING-release-apk-unsigned
+          path: android/app/build/outputs/apk/release/app-release-unsigned.apk
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: NEVERENDING-release-aab-unsigned
+          path: android/app/build/outputs/bundle/release/app-release.aab
