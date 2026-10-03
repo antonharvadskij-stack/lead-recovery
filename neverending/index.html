@@ -349,13 +349,12 @@ function interactWorld(){
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
 }
 function drawBuildStructure(b){
- if(b.type==='tower'){drawTower(b);return}
- if(b.type==='hut'){drawHut(b);return}
- if(b.type==='camp'){drawCamp(b);return}
- const x=sx(b.x),y=sy(b.y);ctx.save();ctx.translate(x,y);ctx.shadowBlur=14;
- if(b.type==='farm'){ctx.fillStyle='#8b6b45';ctx.fillRect(-32,-20,64,40);ctx.fillStyle='#6d9d45';for(let i=-20;i<=20;i+=10){ctx.fillRect(i,-12,5,24)}}
- else if(b.type==='workshop'){ctx.fillStyle='#8a5a3c';ctx.fillRect(-34,-25,68,50);ctx.fillStyle='#b98b57';ctx.fillRect(-22,-36,44,12);ctx.fillStyle='#e5c27b';ctx.fillRect(-8,-12,16,22)}
- else if(b.type==='wall'){ctx.fillStyle='#89939b';ctx.fillRect(-42,-12,84,24);ctx.fillStyle='#66717a';for(let i=-32;i<40;i+=16)ctx.fillRect(i,-12,3,24)}
+ const x=sx(b.x),y=sy(b.y);shadow(b.x,b.y+35,72,18,.36);ctx.save();ctx.translate(x,y);
+ if(b.type==='tower'){drawTower(b);ctx.restore();return} if(b.type==='hut'){drawHut(b);ctx.restore();return} if(b.type==='camp'){drawCamp(b);ctx.restore();return}
+ ctx.shadowBlur=10;
+ if(b.type==='workshop'){const g=ctx.createLinearGradient(0,-35,0,35);g.addColorStop(0,'#c98b50');g.addColorStop(1,'#674027');ctx.fillStyle=g;ctx.fillRect(-42,-25,84,55);ctx.fillStyle='#8e4b39';ctx.beginPath();ctx.moveTo(-50,-25);ctx.lineTo(0,-62);ctx.lineTo(50,-25);ctx.closePath();ctx.fill();ctx.fillStyle='#8fd9df';ctx.fillRect(12,-8,20,18);ctx.fillStyle='#e5c27b';ctx.fillRect(-9,8,18,22);ctx.fillStyle='#30363a';ctx.fillRect(-30,-10,14,18);ctx.fillStyle='#d9a34e';ctx.beginPath();ctx.arc(-23,-18,7,0,Math.PI*2);ctx.fill()}
+ else if(b.type==='wall'){const g=ctx.createLinearGradient(0,-18,0,18);g.addColorStop(0,'#b8c1c6');g.addColorStop(1,'#59656c');ctx.fillStyle=g;ctx.fillRect(-55,-16,110,32);ctx.fillStyle='#4d5960';for(let j=-48;j<55;j+=18)ctx.fillRect(j,-16,4,32);ctx.fillStyle='#d7dee1';ctx.fillRect(-50,-20,100,5)}
+ else if(b.type==='farm'){ctx.fillStyle='#76553a';ctx.fillRect(-40,-20,80,40);ctx.fillStyle='#6e9d45';for(let j=-28;j<30;j+=12)ctx.fillRect(j,-13,6,26);ctx.fillStyle='#b8864d';ctx.fillRect(-45,20,90,6)}
  ctx.restore();
 }
 function applyBuildingProduction(dt){
