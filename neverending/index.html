@@ -17,8 +17,7 @@ window.addEventListener('error',function(e){
 window.addEventListener('unhandledrejection',function(e){
   var box=document.getElementById('debugError');
   if(!box){box=document.createElement('div');box.id='debugError';box.style='position:fixed;inset:0;z-index:99999;background:#120d12;color:#fff;padding:24px;font:16px system-ui;white-space:pre-wrap';document.body.appendChild(box);}
-  box.textContent='Ошибка игры:
-'+(e.reason&&e.reason.message||e.reason||'Promise rejection');
+  box.textContent='Ошибка игры:\n'+(e.reason&&e.reason.message||e.reason||'Promise rejection');
 });
 </script>
 <style>
