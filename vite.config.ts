@@ -7,7 +7,7 @@
 import { defineConfig } from "@lovable.dev/vite-tanstack-config";
 
 export default defineConfig({
-  vite: { base: "/lead-recovery/" },
+  vite: { base: "/lead-recovery/", build: { outDir: "dist", emptyOutDir: true } },
   tanstackStart: {
     prerender: { enabled: true, autoSubfolderIndex: true, crawlLinks: false, failOnError: true },
     // Redirect TanStack Start's bundled server entry to src/server.ts (our SSR error wrapper).
