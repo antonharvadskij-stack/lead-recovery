@@ -48,6 +48,15 @@ export class GameScene extends Phaser.Scene {
   private over = false;
   private hit!: Phaser.GameObjects.Particles.ParticleEmitter;
   private bars!: Phaser.GameObjects.Graphics;
+  private resources = { wood: 0, stone: 0, food: 0, coins: 0 };
+  private hunger = 100;
+  private day = 1;
+  private dayTime = 0;
+  private campLevel = 1;
+  private weaponLevel = 1;
+  private quest = { type: "gather", target: 10, progress: 0 } as { type: string; target: number; progress: number };
+  private pickups!: Phaser.Physics.Arcade.Group;
+  private pickupLabels: Phaser.GameObjects.Text[] = [];
 
   constructor() {
     super("Game");
@@ -60,6 +69,13 @@ export class GameScene extends Phaser.Scene {
     this.kills = 0;
     this.over = false;
     this.attacking = false;
+    this.resources = { wood: 0, stone: 0, food: 0, coins: 0 };
+    this.hunger = 100;
+    this.day = 1;
+    this.dayTime = 0;
+    this.campLevel = 1;
+    this.weaponLevel = 1;
+    this.quest = { type: "gather", target: 10, progress: 0 };
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
@@ -114,6 +130,8 @@ export class GameScene extends Phaser.Scene {
     this.events.on("update", () => pGlow.setPosition(this.player.x, this.player.y - 30));
 
     this.enemyGroup = this.physics.add.group();
+    this.pickups = this.physics.add.group();
+    this.physics.add.overlap(this.player, this.pickups, (_p, obj) => this.collectPickup(obj as Phaser.Physics.Arcade.Sprite), undefined, this);
     this.physics.add.collider(this.player, obstacles);
     this.physics.add.collider(this.enemyGroup, obstacles);
     this.physics.add.collider(this.enemyGroup, this.enemyGroup);
@@ -136,7 +154,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private pushHud() {
-    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over });
+    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, quest: this.quest });
   }
 
   private nextWave() {
@@ -189,7 +207,7 @@ export class GameScene extends Phaser.Scene {
       for (const e of [...this.enemies]) {
         const dx = e.s.x - this.player.x;
         const dy = e.s.y - this.player.y;
-        if (Math.abs(dy) < 55 && dx * dir > -15 && Math.abs(dx) < 95) this.damageEnemy(e, 20 + Phaser.Math.Between(0, 8), dir);
+        if (Math.abs(dy) < 55 && dx * dir > -15 && Math.abs(dx) < 95) this.damageEnemy(e, 20 + this.weaponLevel * 4 + Phaser.Math.Between(0, 8), dir);
       }
     });
   }
@@ -211,12 +229,75 @@ export class GameScene extends Phaser.Scene {
       this.hit.setParticleTint(st.blood[1]!);
       this.hit.explode(26, e.s.x, e.s.y - 20);
       this.enemies = this.enemies.filter((x) => x !== e);
+      this.dropLoot(e.s.x, e.s.y, e.kind);
       this.kills++;
+      if (this.quest.type === "kill") this.quest.progress = Math.min(this.quest.target, this.quest.progress + 1);
       e.s.disableBody(true, false);
       this.tweens.add({ targets: [e.s, e.shadow], alpha: 0, scaleY: 0.2, duration: 300, onComplete: () => { e.s.destroy(); e.shadow.destroy(); } });
       if (this.enemies.length === 0) this.time.delayedCall(2000, () => this.nextWave());
+      if (this.quest.type === "kill" && this.quest.progress >= this.quest.target) {
+        this.resources.coins += 50;
+        this.quest = { type: "gather", target: 12 + this.day * 3, progress: 0 };
+      }
       this.pushHud();
     }
+  }
+
+  private dropLoot(x: number, y: number, kind: EnemyKind) {
+    const count = kind === "brute" ? 3 : 1 + Phaser.Math.Between(0, 1);
+    for (let i = 0; i < count; i++) {
+      const roll = Math.random();
+      const type = roll < 0.42 ? "wood" : roll < 0.72 ? "stone" : roll < 0.92 ? "food" : "coins";
+      const color = type === "wood" ? 0x9b6a3c : type === "stone" ? 0x9aa4ad : type === "food" ? 0x7fb84a : 0xe8c45c;
+      const s = this.physics.add.sprite(x + Phaser.Math.Between(-24,24), y + Phaser.Math.Between(-18,18), K.particle);
+      s.setTint(color).setScale(type === "coins" ? 0.7 : 1.1).setData("type", type).setData("amount", type === "coins" ? Phaser.Math.Between(2,6) : 1);
+      this.pickups.add(s);
+      this.tweens.add({ targets: s, y: s.y - 18, duration: 300, yoyo: true, ease: "Sine.out" });
+      this.time.delayedCall(12000, () => { if (s.active) s.destroy(); });
+    }
+  }
+
+  private collectPickup(s: Phaser.Physics.Arcade.Sprite) {
+    if (!s.active) return;
+    const type = s.getData("type") as keyof typeof this.resources;
+    const amount = Number(s.getData("amount") || 1);
+    this.resources[type] += amount;
+    if (this.quest.type === "gather") this.quest.progress = Math.min(this.quest.target, this.quest.progress + amount);
+    s.destroy();
+    this.pushHud();
+    if (this.quest.progress >= this.quest.target) {
+      this.resources.coins += 25;
+      this.quest = { type: "kill", target: 5 + this.day * 2, progress: 0 };
+      this.pushHud();
+    }
+  }
+
+  private buildCamp() {
+    const cost = { wood: 20 + this.campLevel * 10, stone: 12 + this.campLevel * 6 };
+    if (this.resources.wood < cost.wood || this.resources.stone < cost.stone) return;
+    this.resources.wood -= cost.wood; this.resources.stone -= cost.stone; this.campLevel++;
+    this.hp = Math.min(100, this.hp + 20);
+    this.hunger = Math.min(100, this.hunger + 15);
+    this.pushHud();
+  }
+
+  private upgradeWeapon() {
+    const cost = 30 + this.weaponLevel * 25;
+    if (this.resources.coins < cost || this.weaponLevel >= 8) return;
+    this.resources.coins -= cost; this.weaponLevel++;
+    this.pushHud();
+  }
+
+  private eatFood() {
+    if (this.resources.food <= 0 || this.hunger >= 100) return;
+    this.resources.food--; this.hunger = Math.min(100, this.hunger + 28); this.pushHud();
+  }
+
+  private tickSurvival(delta: number) {
+    this.dayTime += delta;
+    this.hunger = Math.max(0, this.hunger - delta / 9000);
+    if (this.hunger <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 1800);
+    if (this.dayTime >= 120000) { this.dayTime = 0; this.day++; this.hunger = Math.max(0, this.hunger - 12); this.pushHud(); }
   }
 
   private hurtPlayer(dmg: number, fromX: number) {
@@ -240,8 +321,12 @@ export class GameScene extends Phaser.Scene {
     this.pushHud();
   }
 
-  override update() {
-    const inp = (this.registry.get("input") ?? { x: 0, y: 0, attack: false }) as { x: number; y: number; attack: boolean };
+  override update(_time: number, delta: number) {
+    this.tickSurvival(delta);
+    const inp = (this.registry.get("input") ?? { x: 0, y: 0, attack: false, build: false, upgrade: false, eat: false }) as { x: number; y: number; attack: boolean; build?: boolean; upgrade?: boolean; eat?: boolean };
+    if (inp.build) { inp.build = false; this.buildCamp(); }
+    if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
+    if (inp.eat) { inp.eat = false; this.eatFood(); }
     const k = this.keys;
     if (!this.over) {
       if (Phaser.Input.Keyboard.JustDown(k.SPACE) || Phaser.Input.Keyboard.JustDown(k.J) || inp.attack) {
