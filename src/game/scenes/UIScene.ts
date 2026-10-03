@@ -1,7 +1,8 @@
 import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
-type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };\ntype Memory = { steps: number; rescues: number; scars: number; echoes: number; mood: number; last: string; context: { id: string; label: string; hint: string } };
+type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
+type Memory = { steps: number; rescues: number; scars: number; echoes: number; mood: number; last: string; context: { id: string; label: string; hint: string } };
 const FONT = { fontFamily: "Georgia, serif", color: "#efe2b8", stroke: "#0a0f18", strokeThickness: 4 };
 
 /** HUD, сенсорный джойстик и кнопка атаки. */
@@ -9,7 +10,9 @@ export class UIScene extends Phaser.Scene {
   private hpBar!: Phaser.GameObjects.Graphics;
   private info!: Phaser.GameObjects.Text;
   private overBox!: Phaser.GameObjects.Container;
-  private menuBox!: Phaser.GameObjects.Container;\n  private contextBtn!: Phaser.GameObjects.Container;\n  private memoryBox!: Phaser.GameObjects.Container;
+  private menuBox!: Phaser.GameObjects.Container;
+  private contextBtn!: Phaser.GameObjects.Container;
+  private memoryBox!: Phaser.GameObjects.Container;
   private joyBase!: Phaser.GameObjects.Arc;
   private joyKnob!: Phaser.GameObjects.Arc;
   private joyId: number | null = null;
@@ -97,7 +100,11 @@ export class UIScene extends Phaser.Scene {
       label.setText(m.context.label); hint.setText(m.context.hint);
       const stats = this.memoryBox.getData("stats") as Phaser.GameObjects.Text;
       const last = this.memoryBox.getData("last") as Phaser.GameObjects.Text;
-      stats.setText(`Следы: ${Math.floor(m.steps)}\nСвязи: ${m.rescues}\nШрамы мира: ${m.scars}\nЭхо: ${m.echoes}\nСостояние мира: ${m.mood > 0 ? "откликается" : m.mood < 0 ? "насторожено" : "не определено"}`);
+      stats.setText(`Следы: ${Math.floor(m.steps)}
+Связи: ${m.rescues}
+Шрамы мира: ${m.scars}
+Эхо: ${m.echoes}
+Состояние мира: ${m.mood > 0 ? "откликается" : m.mood < 0 ? "насторожено" : "не определено"}`);
       last.setText(m.last || "Пока мир ничего не запомнил.");
     }
     if (h.over && !this.overBox.visible) {
