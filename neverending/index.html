@@ -81,8 +81,8 @@ addEventListener('resize',resize);resize();
 
 const state={wood:30,stone:10,coins:100,hp:100,en:100,hunger:100,level:1,day:1,kills:0,trees:0,built:0};
 function saveGame(){try{localStorage.setItem("last_island_save",JSON.stringify({state,player:{x:player.x,y:player.y}}))}catch(e){}}
-function loadGame(){try{const z=JSON.parse(localStorage.getItem("last_island_save")||"null");if(z?.state)Object.assign(state,z.state);if(z?.player){player.x=z.player.x;player.y=z.player.y}}catch(e){}}
 const player={x:0,y:0,r:18,dir:0,attack:0,hit:0};
+function loadGame(){try{const z=JSON.parse(localStorage.getItem("last_island_save")||"null");if(z?.state)Object.assign(state,z.state);if(z?.player){player.x=z.player.x;player.y=z.player.y}}catch(e){}}
 loadGame();
 const cam={x:player.x,y:player.y};
 const world={w:3000,h:2200};
