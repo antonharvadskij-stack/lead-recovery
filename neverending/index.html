@@ -277,18 +277,27 @@ function doCollect(){
   else toast('Подойдите ближе к ресурсу');
 }
 function showRewardAd(){
- if(!ysdk?.adv?.showRewardedVideo){toast('Реклама пока недоступна');return}
- hidePanel('panel');
- try{
-  ysdk.features?.GameplayAPI?.stop?.();
+ if(window.Android && typeof window.Android.showRewardedAd==='function'){
+  try{ window.Android.showRewardedAd(); return; }catch(e){}
+ }
+ if(typeof ysdk!=='undefined' && ysdk?.adv?.showRewardedVideo){
+  hidePanel('panel');
   ysdk.adv.showRewardedVideo({callbacks:{
-   onOpen:()=>{},
    onRewarded:()=>{state.coins+=50;toast('🎬 Награда за рекламу · +50 🪙');saveGame();updateUI()},
-   onClose:()=>{ysdk.features?.GameplayAPI?.start?.()},
-   onError:()=>{ysdk.features?.GameplayAPI?.start?.();toast('Реклама пока недоступна')}
+   onClose:()=>{},
+   onError:()=>{toast('Реклама пока недоступна')}
   }});
- }catch(e){ysdk.features?.GameplayAPI?.start?.();toast('Реклама пока недоступна')}
+  return;
+ }
+ toast('Реклама пока недоступна');
 }
+window.onNativeRewarded=function(){
+ state.coins+=50;
+ toast('🎬 Награда за рекламу · +50 🪙');
+ saveGame();
+ updateUI();
+};
+
 function useFood(){if(state.food>0){state.food--;state.hunger=Math.min(100,state.hunger+35);state.hp=Math.min(state.maxHp,state.hp+5);state.en=Math.min(state.maxEn,state.en+15);toast('🥩 Еда использована · +5 ❤️');saveGame()}else toast('Нет запасов еды')}
 function buyItem(kind){const d={sword:[120,'weapon',1],armor:[150,'armor',1],food:[15,'food',1]}[kind];if(state.coins<d[0]){toast('Нужно '+d[0]+' 🪙');return}state.coins-=d[0];state[d[1]]+=d[2];toast('Куплено');saveGame();updateUI()}
 function doLoot(){
