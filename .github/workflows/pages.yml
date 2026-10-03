@@ -16,6 +16,13 @@ jobs:
       - uses: actions/configure-pages@v5
       - run: bun install
       - run: bun run build
+      - name: Ensure Pages entrypoint exists
+        run: |
+          if [ ! -f _site/index.html ]; then
+            echo "Build output did not contain index.html"
+            find .output dist -maxdepth 3 -type f -name 'index.html' -print 2>/dev/null || true
+            exit 1
+          fi
       - run: |
           mkdir -p _site
           if [ -d .output/public ]; then cp -R .output/public/. _site/; elif [ -d dist/client ]; then cp -R dist/client/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; else echo "No static build output"; exit 1; fi
