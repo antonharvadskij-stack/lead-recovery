@@ -296,15 +296,13 @@ function interactWorld(){
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
 }
 function drawBuildStructure(b){
- const x=sx(b.x),y=sy(b.y);
- ctx.save();ctx.translate(x,y);
- ctx.shadowBlur=14;
+ if(b.type==='tower'){drawTower(b);return}
+ if(b.type==='hut'){drawHut(b);return}
+ if(b.type==='camp'){drawCamp(b);return}
+ const x=sx(b.x),y=sy(b.y);ctx.save();ctx.translate(x,y);ctx.shadowBlur=14;
  if(b.type==='farm'){ctx.fillStyle='#8b6b45';ctx.fillRect(-32,-20,64,40);ctx.fillStyle='#6d9d45';for(let i=-20;i<=20;i+=10){ctx.fillRect(i,-12,5,24)}}
  else if(b.type==='workshop'){ctx.fillStyle='#8a5a3c';ctx.fillRect(-34,-25,68,50);ctx.fillStyle='#b98b57';ctx.fillRect(-22,-36,44,12);ctx.fillStyle='#e5c27b';ctx.fillRect(-8,-12,16,22)}
  else if(b.type==='wall'){ctx.fillStyle='#89939b';ctx.fillRect(-42,-12,84,24);ctx.fillStyle='#66717a';for(let i=-32;i<40;i+=16)ctx.fillRect(i,-12,3,24)}
- else if(b.type==='tower'){drawTower(b)}
- else if(b.type==='hut'){drawHut(b)}
- else {drawCamp(b)}
  ctx.restore();
 }
 function applyBuildingProduction(dt){
