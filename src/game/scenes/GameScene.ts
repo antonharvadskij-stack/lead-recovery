@@ -14,12 +14,6 @@ const STATS: Record<EnemyKind, { hp: number; speed: number; dmg: number; range: 
   brute: { hp: 150, speed: 48, dmg: 20, range: 80, cd: 1600, blood: [0xff5a3d, 0x8a2020] },
 };
 
-type WorldTrace = {
-  x: number;
-  y: number;
-  createdAt: number;
-  strength: number;
-};
 interface Enemy {
   s: Sprite;
   shadow: Phaser.GameObjects.Image;
@@ -29,9 +23,6 @@ interface Enemy {
   maxHp: number;
   last: number;
   busy: boolean;
-  awakened: boolean;
-  memory: number;
-  pacifiedUntil: number;
 }
 
 function ensureAnims(scene: Phaser.Scene, key: string) {
@@ -42,7 +33,6 @@ function ensureAnims(scene: Phaser.Scene, key: string) {
 }
 
 export class GameScene extends Phaser.Scene {
-  private worldTraces: WorldTrace[] = [];
 
   private player!: Sprite;
   private pShadow!: Phaser.GameObjects.Image;
@@ -61,6 +51,7 @@ export class GameScene extends Phaser.Scene {
   private bars!: Phaser.GameObjects.Graphics;
   private resources = { wood: 0, stone: 0, food: 0, coins: 0 };
   private hunger = 100;
+  private sanity = 100;
   private day = 1;
   private dayTime = 0;
   private campLevel = 1;
@@ -98,6 +89,7 @@ export class GameScene extends Phaser.Scene {
     this.attacking = false;
     this.resources = { wood: 0, stone: 0, food: 0, coins: 0 };
     this.hunger = 100;
+    this.sanity = 100;
     this.day = 1;
     this.dayTime = 0;
     this.campLevel = 1;
@@ -106,7 +98,7 @@ export class GameScene extends Phaser.Scene {
     this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
     this.lastFarmTick = 0; this.lastTowerShot = 0;
     this.chests = []; this.discoveredZones = new Set<string>(); this.workshopCrafts = 0;
-    this.memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 }; this.lastMemoryAction = ""; this.worldMood = 0; this.lastWorldPulse = 0;
+    this.memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 }; this.lastMemoryAction = ""; this.lastWorldPulse = 0;
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
@@ -195,7 +187,7 @@ export class GameScene extends Phaser.Scene {
   private pushHud() {
     const context = this.getContextAction();
     this.registry.set("memory", { ...this.memory, mood: this.worldMood, last: this.lastMemoryAction, context });
-    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
+    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, sanity: this.sanity, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
   }
 
   private nextWave() {
@@ -229,39 +221,8 @@ export class GameScene extends Phaser.Scene {
     const st = STATS[kind];
     const maxHp = Math.round(st.hp * (1 + (level - 1) * 0.6));
     const shadow = this.add.image(x, y, K.shadow).setScale(kind === "brute" ? 1.5 : 1, 0.9);
-    this.enemies.push({ s, shadow, kind, level, hp: maxHp, maxHp, last: 0, busy: false, awakened: false, memory: 0, pacifiedUntil: 0 });
+    this.enemies.push({ s, shadow, kind, level, hp: maxHp, maxHp, last: 0, busy: false });
     this.pushHud();
-  }
-
-  private leaveTrace() {
-    if (this.over) return;
-    const now = this.time.now;
-    if (this.lastMemoryAction && now - this.lastAttack < 250) return;
-    this.lastAttack = now;
-    const x = this.player.x;
-    const y = this.player.y;
-    const trace = this.add.circle(x, y, 13, 0x9ad7ff, 0.55).setDepth(6);
-    trace.setStrokeStyle(2, 0xe7fbff, 0.8);
-    trace.setData("createdAt", now);
-    this.worldTraces.push({ x, y, createdAt: now, strength: 1 });
-    this.tweens.add({ targets: trace, alpha: 0.18, scale: 1.7, duration: 900 });
-    this.time.delayedCall(6500, () => trace.destroy());
-    let influenced = 0;
-    for (const e of this.enemies) {
-      const d = Phaser.Math.Distance.Between(e.s.x, e.s.y, x, y);
-      if (d < 190) {
-        e.memory += 1;
-        e.pacifiedUntil = now + 2600;
-        e.s.setTint(0x9ad7ff);
-        this.time.delayedCall(700, () => { if (e.s.active) e.s.clearTint(); });
-        influenced++;
-      }
-    }
-    this.memory.steps++;
-    this.worldMood += influenced ? 2 : 1;
-    this.lastMemoryAction = influenced
-      ? "След оставил отпечаток. Ближайшие существа его почувствовали."
-      : "Ты оставил след. Мир его запомнил.";
   }
 
   private playerAttack() {
@@ -280,13 +241,6 @@ export class GameScene extends Phaser.Scene {
         const dx = e.s.x - this.player.x;
         const dy = e.s.y - this.player.y;
         if (Math.abs(dy) < 55 && dx * dir > -15 && Math.abs(dx) < 95) this.damageEnemy(e, 20 + this.weaponLevel * 4 + Phaser.Math.Between(0, 8), dir);
-      // Первый удар создаёт «связь»: существо запоминает игрока.
-      e.awakened = true;
-      e.memory += 1;
-      e.pacifiedUntil = this.time.now + 2200;
-      e.s.setData("awakened", true);
-      this.worldMood = Math.max(-10, this.worldMood - 1);
-      this.lastMemoryAction = "Ты разбудил существо. Оно запомнило тебя.";
       }
     });
   }
@@ -324,54 +278,24 @@ export class GameScene extends Phaser.Scene {
 
   private getContextAction() {
     const nearbyChest = this.chests.find(c => !c.getData("opened") && Phaser.Math.Distance.Between(c.x, c.y, this.player.x, this.player.y) < 105);
-    if (nearbyChest) return { id: "chest", label: "ОСМОТРЕТЬ НАХОДКУ", hint: "Мир оставит это в памяти" };
-    const nearbyEnemy = this.enemies.find(e => Phaser.Math.Distance.Between(e.s.x, e.s.y, this.player.x, this.player.y) < 120);
-    if (nearbyEnemy) return { id: "observe", label: "НАБЛЮДАТЬ", hint: "Изучи поведение существа" };
-    if (Phaser.Math.Distance.Between(this.center.x, this.center.y, this.player.x, this.player.y) < 150)
-      return { id: "camp", label: "ОСТАВИТЬ СЛЕД", hint: "Измени состояние мира" };
-    return { id: "mark", label: "ЗАПОМНИТЬ МЕСТО", hint: "Оставь здесь память" };
+    if (nearbyChest) return { id: "chest", label: "ОТКРЫТЬ", hint: "Проверить находку" };
+    if (this.resources.food > 0 && this.hunger < 85) return { id: "eat", label: "СЪЕСТЬ ЕДУ", hint: "Восстановить голод" };
+    return { id: "camp", label: "КОСТЁР", hint: "Подготовиться к ночи" };
   }
 
   private contextAction() {
     const a = this.getContextAction();
     if (a.id === "chest") {
       const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, x.y, this.player.x, this.player.y) < 105);
-      if (c) { this.openChest(c); this.memory.echoes++; this.lastMemoryAction = "Ты забрал находку. Мир это запомнил."; }
-    } else if (a.id === "observe") {
-      const e = this.enemies.find(x => Phaser.Math.Distance.Between(x.s.x, x.s.y, this.player.x, this.player.y) < 120);
-      this.memory.steps++;
-      this.worldMood += 1;
-      if (e) {
-        // Наблюдение — отдельный способ взаимодействия: игрок может изменить отношение существа без боя.
-        e.memory += 1;
-        e.pacifiedUntil = this.time.now + 6500;
-        e.s.setVelocity(0, 0);
-        e.s.setTint(0xb9e7ff);
-        this.time.delayedCall(900, () => { if (e.s.active) e.s.clearTint(); });
-        this.lastMemoryAction = e.awakened
-          ? "Ты не стал добивать его. Существо запомнило этот выбор."
-          : "Ты изучил существо. Оно пока не считает тебя угрозой.";
-      } else {
-        this.lastMemoryAction = "Ты наблюдал. Теперь существа могут вести себя иначе.";
-      }
-    } else if (a.id === "camp") {
-      this.leaveTrace();
-      this.memory.rescues++;
-      this.worldMood += 2;
-      this.lastMemoryAction = "Ты оставил след у костра. Это станет частью истории.";
-      const e = this.add.circle(this.player.x, this.player.y - 30, 12, 0xffd36a, 0.8).setDepth(7000);
-      this.echoGroup.add(e);
-      this.tweens.add({ targets: e, scale: 3.2, alpha: 0, duration: 1000, onComplete: () => e.destroy() });
+      if (c) this.openChest(c);
+    } else if (a.id === "eat") {
+      this.eatFood();
     } else {
-      this.memory.scars++;
-      this.worldMood -= 1;
-      this.lastMemoryAction = "Место отмечено. Последствия появятся позже.";
-      const e = this.add.circle(this.player.x, this.player.y - 20, 9, 0x8fd3ff, 0.7).setDepth(7000);
-      this.echoGroup.add(e);
-      this.tweens.add({ targets: e, scale: 2.5, alpha: 0, duration: 800, onComplete: () => e.destroy() });
+      this.buildCamp();
     }
     this.pushHud();
   }
+
 
   private createExplorationZones(cx: number, cy: number, rng: Phaser.Math.RandomDataGenerator) {
     const zones = [
@@ -535,9 +459,20 @@ export class GameScene extends Phaser.Scene {
 
   private tickSurvival(delta: number) {
     this.dayTime += delta;
-    this.hunger = Math.max(0, this.hunger - delta / 9000);
-    if (this.hunger <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 1800);
-    if (this.dayTime >= 120000) { this.dayTime = 0; this.day++; this.hunger = Math.max(0, this.hunger - 12); this.pushHud(); }
+    const isNight = (this.dayTime % 120000) > 72000;
+    this.hunger = Math.max(0, this.hunger - delta / 8500);
+    if (this.hunger < 35) this.sanity = Math.max(0, this.sanity - delta / 7000);
+    if (isNight) this.sanity = Math.max(0, this.sanity - delta / 9500);
+    else if (this.hunger > 60 && this.hp > 60) this.sanity = Math.min(100, this.sanity + delta / 18000);
+    if (this.hunger <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 1700);
+    if (this.sanity <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 2600);
+    if (this.dayTime >= 120000) {
+      this.dayTime = 0;
+      this.day++;
+      this.hunger = Math.max(0, this.hunger - 12);
+      this.sanity = Math.max(0, this.sanity - 8);
+      this.pushHud();
+    }
   }
 
   private hurtPlayer(dmg: number, fromX: number) {
@@ -592,80 +527,37 @@ export class GameScene extends Phaser.Scene {
       this.player.anims.timeScale = this.attacking ? 1 : len > 0.05 ? 1 : 0.0001;
       if (!this.attacking && len <= 0.05) this.player.setFrame(0);
     }
-    // Оставленные следы продолжают жить после ухода игрока.
-    for (let i = this.worldTraces.length - 1; i >= 0; i--) {
-      const tr = this.worldTraces[i];
-      const age = now - tr.createdAt;
-      tr.strength = Math.max(0, 1 - age / 6500);
-      if (tr.strength <= 0) {
-        this.worldTraces.splice(i, 1);
-        continue;
-      }
-      for (const e of this.enemies) {
-        if (!e.s.active || e.hp < e.maxHp) continue;
-        const d = Phaser.Math.Distance.Between(e.s.x, e.s.y, tr.x, tr.y);
-        if (d < 190 && age > 450) {
-          e.memory += delta * 0.00012 * tr.strength;
-          if (d > 32) {
-            e.s.setVelocity(
-              ((tr.x - e.s.x) / Math.max(d, 1)) * 22 * tr.strength,
-              ((tr.y - e.s.y) / Math.max(d, 1)) * 22 * tr.strength
-            );
-            e.s.setFlipX(tr.x < e.s.x);
-          } else {
-            e.s.setVelocity(0, 0);
-            e.pacifiedUntil = Math.max(e.pacifiedUntil, now + 1000);
-            e.s.setData("traceResponse", "found");
-          }
-        }
-      }
-    }
-
     this.clamp(this.player);
     this.player.setDepth(this.player.y);
     this.pShadow.setPosition(this.player.x, this.player.y).setDepth(this.player.y - 1);
 
-    const now = this.time.now;
     this.bars.clear();
     for (const e of this.enemies) {
       const st = STATS[e.kind];
       const dx = this.player.x - e.s.x;
       const dy = this.player.y - e.s.y;
       const dist = Math.hypot(dx, dy);
-      // Враги больше НЕ атакуют игрока автоматически.
-      // Они преследуют и наблюдают, а урон игрок получает только через явное игровое действие.
       if (!e.busy) {
-        if (this.over) {
-          e.s.setVelocity(0, 0);
-        } else if (e.awakened && this.time.now >= e.pacifiedUntil) {
-          // После пробуждения существо начинает преследовать, но его реакция зависит от памяти.
-          const sp = st.speed * (1 + (e.level - 1) * 0.12 + Math.min(e.memory, 3) * 0.05);
-          if (dist > st.range) {
-            e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
-          } else {
-            e.s.setVelocity(0, 0);
-          }
-          e.s.setFlipX(dx < 0);
-        } else if (e.hp < e.maxHp) {
-          // Раненое, но ещё не пробуждённое существо также реагирует на игрока.
+        if (this.over) e.s.setVelocity(0, 0);
+        else if (dist > st.range) {
           const sp = st.speed * (1 + (e.level - 1) * 0.12);
-          if (dist > st.range) e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
-          else e.s.setVelocity(0, 0);
+          e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
           e.s.setFlipX(dx < 0);
         } else {
-          // Нейтральные враги не бегут на игрока сами.
-          // Они медленно бродят по своей зоне и начинают преследование
-          // только после того, как игрок первым нанесёт им урон.
-          const t = now / 1000 + e.s.x * 0.001 + e.s.y * 0.001;
-          const wanderX = Math.sin(t * 0.7 + e.level) * 0.35;
-          const wanderY = Math.cos(t * 0.53 + e.level * 2) * 0.25;
-          const wander = new Phaser.Math.Vector2(wanderX, wanderY);
-          if (wander.lengthSq() > 0.01) {
-            wander.normalize().scale(st.speed * 0.18);
-            e.s.setVelocity(wander.x, wander.y);
-            if (Math.abs(wander.x) > 0.02) e.s.setFlipX(wander.x < 0);
-          } else {
-            e.s.setVelocity(0, 0);
+          e.s.setVelocity(0, 0);
+          if (now - e.last > st.cd) {
+            e.last = now;
+            e.busy = true;
+            const key = enemyTextureKey(e.kind, e.level);
+            e.s.play(key + "_attack");
+            this.time.delayedCall(200, () => {
+              if (e.s.active && Phaser.Math.Distance.Between(e.s.x, e.s.y, this.player.x, this.player.y) < st.range + 15)
+                this.hurtPlayer(Math.round(st.dmg * (1 + (e.level - 1) * 0.4)), e.s.x);
+            });
+            e.s.once(Phaser.Animations.Events.ANIMATION_COMPLETE, () => {
+              e.busy = false;
+              if (e.s.active) e.s.play(key + "_walk");
+            });
           }
         }
       }
