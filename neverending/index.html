@@ -5,7 +5,19 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#07111c">
 <title>Последний остров — выживание</title>
-<script src="https://yandex.ru/games/sdk/v2"></script>
+<script src="https://yandex.ru/games/sdk/v2"></script><script>
+window.addEventListener('error',function(e){
+  var box=document.getElementById('debugError');
+  if(!box){box=document.createElement('div');box.id='debugError';box.style='position:fixed;inset:0;z-index:99999;background:#120d12;color:#fff;padding:24px;font:16px system-ui;white-space:pre-wrap';
+  document.body.appendChild(box);}
+  box.textContent='Ошибка игры:\n'+(e.message||'Unknown error')+'\nСтрока: '+(e.lineno||'?');
+});
+window.addEventListener('unhandledrejection',function(e){
+  var box=document.getElementById('debugError');
+  if(!box){box=document.createElement('div');box.id='debugError';box.style='position:fixed;inset:0;z-index:99999;background:#120d12;color:#fff;padding:24px;font:16px system-ui;white-space:pre-wrap';document.body.appendChild(box);}
+  box.textContent='Ошибка игры:\n'+(e.reason&&e.reason.message||e.reason||'Promise rejection');
+});
+</script>
 <style>
 *{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#07111c;font-family:system-ui,-apple-system,Segoe UI,Roboto,sans-serif;color:#fff;touch-action:none}
 #game{position:fixed;inset:0;width:100%;height:100%;display:block;background:#07111c}
