@@ -9,6 +9,7 @@ export class UIScene extends Phaser.Scene {
   private hpBar!: Phaser.GameObjects.Graphics;
   private info!: Phaser.GameObjects.Text;
   private overBox!: Phaser.GameObjects.Container;
+  private menuBox!: Phaser.GameObjects.Container;
   private joyBase!: Phaser.GameObjects.Arc;
   private joyKnob!: Phaser.GameObjects.Arc;
   private joyId: number | null = null;
@@ -25,15 +26,44 @@ export class UIScene extends Phaser.Scene {
     this.add.text(24, 16, "NEVERENDING", { ...FONT, fontSize: "28px" });
     this.hpBar = this.add.graphics();
     this.info = this.add.text(24, 84, "", { ...FONT, fontFamily: "sans-serif", fontSize: "17px" });
+    const menuBtn = this.add.rectangle(W - 58, 34, 92, 42, 0x172838, 0.95).setStrokeStyle(2, 0xd8b66a, 0.8).setInteractive();
+    this.add.text(menuBtn.x, menuBtn.y, "МЕНЮ", { ...FONT, fontFamily: "sans-serif", fontSize: "15px" }).setOrigin(0.5);
+    menuBtn.on("pointerdown", () => this.menuBox.setVisible(!this.menuBox.visible));
     const actions = [
-      ["Еда", W - 250, H - 62, "eat"], ["Лагерь", W - 180, H - 62, "build"], ["Оружие", W - 105, H - 62, "upgrade"],
+      ["Еда", W - 250, H - 62, "eat"], ["Лагерь", W - 180, H - 62, "build"], ["Оружие", W - 105, H - 62, "upgrade"], ["Крафт", W - 320, H - 120, "craft"],
     ];
     for (const [label, x, y, action] of actions as [string, number, number, string][]) {
       const b = this.add.rectangle(x, y, 86, 42, 0x172838, 0.9).setStrokeStyle(2, 0xd8b66a, 0.7).setInteractive();
       this.add.text(x, y, label, { fontFamily: "sans-serif", fontSize: "13px", color: "#efe2b8" }).setOrigin(0.5);
       b.on("pointerdown", () => { const i = this.input_() as any; i[action] = true; });
     }
-    this.add.text(W - 20, H - 14, "WASD — движение · Пробел — атака", { fontFamily: "sans-serif", fontSize: "14px", color: "#9fb4bf" }).setOrigin(1, 1);
+    this.add.text(W - 20, H - 14, "Джойстик — движение · Удар — атака · Меню — база", { fontFamily: "sans-serif", fontSize: "14px", color: "#9fb4bf" }).setOrigin(1, 1);
+
+    // Полноценное меню управления базой и прогрессией.
+    const mbg = this.add.rectangle(0, 0, 430, 470, 0x0a1420, 0.96).setStrokeStyle(3, 0xd8b66a, 0.85);
+    const mtitle = this.add.text(0, -205, "ЛАГЕРЬ", { ...FONT, fontSize: "30px" }).setOrigin(0.5);
+    const mdesc = this.add.text(0, -162, "Строй, улучшай и готовься к ночи", { fontFamily: "sans-serif", fontSize: "16px", color: "#b7c5c9" }).setOrigin(0.5);
+    const menuItems: Array<[string,string,number]> = [
+      ["Построить лагерь", "build", 0],
+      ["Улучшить оружие", "upgrade", 1],
+      ["Собрать еду", "eat", 2],
+      ["Крафт мастерской", "craft", 3],
+      ["Закрыть", "close", 4],
+    ];
+    const menuButtons: Phaser.GameObjects.GameObject[] = [mbg, mtitle, mdesc];
+    menuItems.forEach(([label, action, idx]) => {
+      const y = -105 + idx * 58;
+      const b = this.add.rectangle(0, y, 300, 46, 0x172838, 1).setStrokeStyle(2, 0x6f8792, 0.8).setInteractive();
+      const t = this.add.text(0, y, label, { fontFamily: "sans-serif", fontSize: "17px", color: "#efe2b8" }).setOrigin(0.5);
+      b.on("pointerdown", () => {
+        if (action === "close") { this.menuBox.setVisible(false); return; }
+        const i = this.input_() as any;
+        i[action] = true;
+        this.menuBox.setVisible(false);
+      });
+      menuButtons.push(b, t);
+    });
+    this.menuBox = this.add.container(W / 2, H / 2, menuButtons).setDepth(200).setVisible(false);
 
     const waveText = this.add.text(W / 2, H * 0.28, "", { ...FONT, fontSize: "56px" }).setOrigin(0.5).setAlpha(0);
     this.game.events.on("wave", (n: number) => {
