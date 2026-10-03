@@ -195,7 +195,7 @@ function draw(){
   drawEffects();if(night>.01){ctx.fillStyle='rgba(3,12,30,'+(night*.38)+')';ctx.fillRect(0,0,W,H)}ctx.restore();
 }
 function near(list,r){let best=null,bd=r;for(const o of list){if(o.hp<=0||o.alive===false)continue;const d=dist(player,o);if(d<bd){bd=d;best=o}}return best}
-function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>el.style.display='none',1400)}
+function toast(t){const el=document.getElementById('toast');el.textContent=t;el.style.display='block';clearTimeout(toast.t);toast.t=setTimeout(()=>{el.style.display='none';el.textContent=''},1600)}
 function updateMission(){
   const el=document.getElementById("mission");
   if(missionStage===0){const left=Math.max(0,10-state.trees);el.textContent=left?("🎯 Срубите ещё "+left+" деревьев"):"🏗️ Постройте 3 объекта";if(state.trees>=10){missionStage=1;state.coins+=50;toast("🎁 Цель выполнена · +50 монет");saveGame()}}
