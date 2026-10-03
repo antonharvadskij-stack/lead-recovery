@@ -385,12 +385,15 @@ function interactWorld(){
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
 }
 function drawBuildStructure(b){
- const x=sx(b.x),y=sy(b.y);shadow(b.x,b.y+35,72,18,.36);ctx.save();ctx.translate(x,y);
- if(b.type==='tower'){ctx.restore();drawTower(b);return} if(b.type==='hut'){ctx.restore();drawHut(b);return} if(b.type==='camp'){ctx.restore();drawCamp(b);return}
- ctx.shadowBlur=10;
- if(b.type==='workshop'){const g=ctx.createLinearGradient(0,-35,0,35);g.addColorStop(0,'#c98b50');g.addColorStop(1,'#674027');ctx.fillStyle=g;ctx.fillRect(-42,-25,84,55);ctx.fillStyle='#8e4b39';ctx.beginPath();ctx.moveTo(-50,-25);ctx.lineTo(0,-62);ctx.lineTo(50,-25);ctx.closePath();ctx.fill();ctx.fillStyle='#8fd9df';ctx.fillRect(12,-8,20,18);ctx.fillStyle='#e5c27b';ctx.fillRect(-9,8,18,22);ctx.fillStyle='#30363a';ctx.fillRect(-30,-10,14,18);ctx.fillStyle='#d9a34e';ctx.beginPath();ctx.arc(-23,-18,7,0,Math.PI*2);ctx.fill()}
- else if(b.type==='wall'){const g=ctx.createLinearGradient(0,-18,0,18);g.addColorStop(0,'#b8c1c6');g.addColorStop(1,'#59656c');ctx.fillStyle=g;ctx.fillRect(-55,-16,110,32);ctx.fillStyle='#4d5960';for(let j=-48;j<55;j+=18)ctx.fillRect(j,-16,4,32);ctx.fillStyle='#d7dee1';ctx.fillRect(-50,-20,100,5)}
- else if(b.type==='farm'){ctx.fillStyle='#76553a';ctx.fillRect(-40,-20,80,40);ctx.fillStyle='#6e9d45';for(let j=-28;j<30;j+=12)ctx.fillRect(j,-13,6,26);ctx.fillStyle='#b8864d';ctx.fillRect(-45,20,90,6)}
+ const x=sx(b.x),y=sy(b.y),tm=performance.now()/1000;shadow(b.x,b.y+38,78,20,.38);ctx.save();ctx.translate(x,y);
+ const pulse=1+Math.sin(tm*2+b.x*.01)*.015;ctx.scale(pulse,pulse);
+ const wood=(cx,cy,w,h)=>{const g=ctx.createLinearGradient(0,cy-h/2,0,cy+h/2);g.addColorStop(0,'#c08a52');g.addColorStop(.55,'#8a5934');g.addColorStop(1,'#513526');ctx.fillStyle=g;ctx.fillRect(cx-w/2,cy-h/2,w,h);ctx.strokeStyle='rgba(255,225,165,.2)';ctx.strokeRect(cx-w/2,cy-h/2,w,h)};
+ const roof=(pts)=>{const g=ctx.createLinearGradient(0,-65,0,-10);g.addColorStop(0,'#b95e49');g.addColorStop(1,'#542c35');ctx.fillStyle=g;ctx.beginPath();pts.forEach((p,i)=>i?ctx.lineTo(p[0],p[1]):ctx.moveTo(p[0],p[1]));ctx.closePath();ctx.fill();ctx.strokeStyle='#e0a16b';ctx.lineWidth=2;ctx.stroke()};
+ if(b.type==='tower'){wood(0,3,48,66);roof([[-34,-29],[0,-66],[34,-29]]);ctx.fillStyle='#9adbe0';ctx.fillRect(-13,-16,26,15);ctx.fillStyle='#e2c46e';ctx.fillRect(-6,19,12,27);ctx.strokeStyle='#d6eef0';ctx.lineWidth=4;ctx.beginPath();ctx.moveTo(0,-58);ctx.lineTo(0,-78);ctx.stroke();ctx.fillStyle='#f8df79';ctx.beginPath();ctx.arc(0,-82,5,0,Math.PI*2);ctx.fill();for(let q=-1;q<=1;q+=2){ctx.fillStyle='#6d452f';ctx.fillRect(q*27-3,-18,6,37)}}
+ else if(b.type==='hut'||b.type==='camp'){wood(0,5,92,58);roof([[-54,-24],[0,-67],[54,-24]]);ctx.fillStyle='#7ecbd0';ctx.fillRect(20,-5,25,19);ctx.fillStyle='#5a3828';ctx.fillRect(-10,5,20,31);ctx.fillStyle='#dfc17a';ctx.fillRect(-7,10,14,4);ctx.fillStyle='#8c5a35';ctx.fillRect(-44,-8,17,12)}
+ else if(b.type==='workshop'){wood(0,7,102,64);roof([[-60,-25],[0,-73],[60,-25]]);ctx.fillStyle='#6d432b';ctx.fillRect(-45,-6,25,22);ctx.fillStyle='#8ddbe0';ctx.fillRect(18,-8,28,21);ctx.fillStyle='#e6c36e';ctx.fillRect(-8,8,20,31);ctx.fillStyle='#2d3538';ctx.fillRect(-45,-24,18,17);ctx.fillStyle='#d49b4d';ctx.beginPath();ctx.arc(-36,-28,8,0,Math.PI*2);ctx.fill();ctx.strokeStyle='#6d432b';ctx.lineWidth=5;ctx.beginPath();ctx.moveTo(-20,-20);ctx.lineTo(10,-48);ctx.stroke()}
+ else if(b.type==='wall'){const g=ctx.createLinearGradient(0,-20,0,20);g.addColorStop(0,'#c8d0d2');g.addColorStop(1,'#59656a');ctx.fillStyle=g;ctx.fillRect(-62,-19,124,38);ctx.fillStyle='#768287';for(let q=-54;q<62;q+=18)ctx.fillRect(q,-19,5,38);ctx.fillStyle='#e4eaeb';ctx.fillRect(-58,-24,116,6);ctx.strokeStyle='#39464b';ctx.strokeRect(-62,-19,124,38)}
+ else if(b.type==='farm'){ctx.fillStyle='#765338';ctx.fillRect(-52,-23,104,46);ctx.strokeStyle='#b48752';ctx.lineWidth=3;for(let q=-38;q<45;q+=13){ctx.beginPath();ctx.moveTo(q,-18);ctx.lineTo(q,18);ctx.stroke()}for(let q=-30;q<36;q+=13){ctx.strokeStyle='#78a94f';ctx.beginPath();ctx.moveTo(q,8);ctx.lineTo(q-4,-10);ctx.moveTo(q+3,8);ctx.lineTo(q+7,-8);ctx.stroke()}}
  ctx.restore();
 }
 function applyBuildingProduction(dt){
