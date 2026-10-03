@@ -15,7 +15,7 @@ jobs:
       - uses: oven-sh/setup-bun@v2
       - uses: actions/configure-pages@v5
       - run: bun install
-      - run: bun run build
+      - run: bunx vite build --config vite.game.config.ts
       - run: |
           mkdir -p _site
           if [ -d .output/public ]; then cp -R .output/public/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; elif [ -d dist/client ]; then cp -R dist/client/. _site/; else echo "No static build output"; exit 1; fi
