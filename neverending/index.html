@@ -154,10 +154,29 @@ function drawWater(){
  for(let row=0;row<12;row++){const yy=(row/12)*H;ctx.beginPath();for(let x=-30;x<W+40;x+=55){const y=yy+Math.sin(x*.025+performance.now()/1700+row)*5; if(x===-30)ctx.moveTo(x,y);else ctx.quadraticCurveTo(x+14,y-4,x+28,y)}ctx.stroke()}ctx.restore();
 }
 function drawIsland(){
-  ellipse(0,38,island.rx+70,island.ry+62,'rgba(2,19,25,.72)');ellipse(0,22,island.rx+48,island.ry+45,'#4f4639');ellipse(0,6,island.rx+28,island.ry+27,'#d3b06a');ellipse(0,-8,island.rx,island.ry,'#1f6948');ellipse(-240,-90,300,180,'rgba(91,176,101,.32)');ellipse(250,100,260,150,'rgba(24,105,74,.28)');ellipse(-110,-30,900,575,'#348c57');ellipse(110,-90,760,500,'#45a263');
-  ctx.save();ctx.strokeStyle='rgba(235,210,143,.72)';ctx.lineWidth=18;ctx.beginPath();ctx.ellipse(sx(0),sy(-5),island.rx-32,island.ry-40,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(255,245,191,.34)';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(sx(0),sy(-8),island.rx-50,island.ry-58,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(174,220,133,.24)';ctx.lineWidth=10;for(let i=0;i<18;i++){const x=-720+i*82,y=180+Math.sin(i*1.7)*95;ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+35),sy(y-22),sx(x+75),sy(y-4));ctx.stroke()}ctx.restore();
-  ctx.save();ctx.globalAlpha=.32;ctx.strokeStyle='#a9e1d7';ctx.lineWidth=3;ctx.beginPath();ctx.ellipse(sx(0),sy(17),island.rx+82,island.ry+72,0,0,Math.PI*2);ctx.stroke();ctx.restore();
+ const rx=island.rx,ry=island.ry;ctx.save();
+ // ocean / soft island shadow
+ ellipse(0,10,rx+42,ry+34,'rgba(0,0,0,.30)');
+ ellipse(0,-8,rx+18,ry+14,'#d4b276');
+ ellipse(0,-10,rx,ry,'#3c7e4f');
+ // layered terrain masses
+ ellipse(-285,-125,245,150,'#2e6847'); ellipse(270,-125,235,145,'#356f49');
+ ellipse(-300,125,230,125,'#316d4a'); ellipse(300,125,235,125,'#286447');
+ ellipse(0,40,245,155,'#478955');
+ // hand-painted style terrain highlights
+ ctx.save();ctx.globalAlpha=.32;
+ ellipse(-210,-80,120,70,'#7da15a');ellipse(205,-70,125,68,'#719654');
+ ellipse(-170,125,105,55,'#789a55');ellipse(175,125,115,55,'#5d8c51');
+ ctx.restore();
+ // winding sand path
+ ctx.save();ctx.strokeStyle='#d4b77d';ctx.globalAlpha=.72;ctx.lineWidth=19;ctx.lineCap='round';
+ ctx.beginPath();ctx.moveTo(sx(-270),sy(-105));ctx.bezierCurveTo(sx(-150),sy(-70),sx(-70),sy(10),sx(0),sy(45));ctx.bezierCurveTo(sx(100),sy(75),sx(160),sy(-30),sx(275),sy(-105));ctx.stroke();
+ ctx.strokeStyle='#f0d89d';ctx.globalAlpha=.38;ctx.lineWidth=5;ctx.stroke();ctx.restore();
+ // shoreline stones
+ for(let n=0;n<18;n++){const a=n*Math.PI*2/18;const px=Math.cos(a)*(rx-18),py=Math.sin(a)*(ry-14);ctx.fillStyle=n%2?'#a58b62':'#c0a675';ctx.beginPath();ctx.ellipse(sx(px),sy(py),5,3,0,0,Math.PI*2);ctx.fill();}
+ ctx.restore();
 }
+
 function drawTreasures(){for(const t of treasures){if(t.opened)continue;const x=sx(t.x),y=sy(t.y),d0=dist(t,player),p=1+Math.sin(performance.now()/240+t.x)*.06;shadow(t.x,t.y+16,25,8,.3);ctx.save();ctx.translate(x,y);ctx.scale(p,p);ctx.shadowBlur=d0<90?20:7;ctx.shadowColor='#ffd75d';ctx.fillStyle='#704329';ctx.fillRect(-22,-13,44,28);ctx.fillStyle='#b87937';ctx.fillRect(-20,-11,40,8);ctx.fillStyle='#f0c65b';ctx.fillRect(-22,-3,44,7);ctx.fillStyle='#ffe99a';ctx.fillRect(-4,-13,8,28);ctx.fillStyle='#2b2521';ctx.fillRect(-3,-1,6,7);ctx.restore();if(d0<90){ctx.fillStyle='#fff4b0';ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.fillText('ОТКРЫТЬ',x,y-31)}}}
 function drawRareNodes(){for(const n of rareNodes){if(!n.alive)continue;const x=sx(n.x),y=sy(n.y),p=1+Math.sin(performance.now()/190+n.x)*.08;shadow(n.x,n.y+15,22,7,.25);ctx.save();ctx.translate(x,y);ctx.scale(p,p);ctx.shadowBlur=22;ctx.shadowColor='#65f7ff';const gr=ctx.createLinearGradient(-15,-20,15,20);gr.addColorStop(0,'#eaffff');gr.addColorStop(.35,'#64e7e9');gr.addColorStop(1,'#176875');ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(-21,11);ctx.lineTo(-11,-17);ctx.lineTo(2,-25);ctx.lineTo(22,-7);ctx.lineTo(12,16);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(220,255,255,.8)';ctx.lineWidth=2;ctx.stroke();ctx.restore();if(dist(n,player)<85){ctx.fillStyle='#dfffff';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('ДОБЫТЬ',x,y-31)}}}
 function drawRuins(){for(const r of ruins){const x=sx(r.x),y=sy(r.y);shadow(r.x,r.y+20,58,14,.3);ctx.save();ctx.translate(x,y);ctx.fillStyle='#596467';ctx.fillRect(-48,-8,96,14);ctx.fillRect(-38,-45,16,38);ctx.fillRect(20,-35,15,28);ctx.fillStyle='#303d42';ctx.fillRect(-28,-3,16,9);ctx.fillRect(8,-3,20,9);ctx.restore()}}
