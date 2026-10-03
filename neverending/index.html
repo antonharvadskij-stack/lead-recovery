@@ -56,10 +56,10 @@
   <div class="controls">
     <div class="joy" id="joy"><div class="stick" id="stick"></div></div>
     <div class="buttons">
-      <button class="act collect" id="collect">🪓<br>СОБРАТЬ</button>
-      <button class="act loot" id="loot">🎁<br>ЛУТ / ЕДА</button>
-      <button class="act attack" id="attack">⚔️<br>АТАКА</button>
-      <button class="act build" id="build">🏠<br>СТРОИТЬ</button>
+      <button type="button" class="act collect" id="collect">🪓<br>СОБРАТЬ</button>
+      <button type="button" class="act loot" id="loot">🎁<br>ЛУТ / ЕДА</button>
+      <button type="button" class="act attack" id="attack">⚔️<br>АТАКА</button>
+      <button type="button" class="act build" id="build">🏠<br>СТРОИТЬ</button>
     </div>
   </div>
 </div>
@@ -304,10 +304,16 @@ function buyUpgrade(kind){
 document.getElementById('openUpgrades').onclick=openUpgrades;document.getElementById('upgHp').onclick=()=>buyUpgrade('hp');document.getElementById('upgEn').onclick=()=>buyUpgrade('en');document.getElementById('upgDmg').onclick=()=>buyUpgrade('dmg');document.getElementById('upgBag').onclick=()=>buyUpgrade('bag');document.getElementById('upgClose').onclick=()=>document.getElementById('upgradePanel').style.display='none';
 document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:doBuild};
-Object.entries(actionMap).forEach(([id,fn])=>{
+function bindAction(id,fn){
   const el=document.getElementById(id);
-  el.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();fn()},{passive:false});
-});
+  if(!el)return;
+  const fire=e=>{e.preventDefault();e.stopPropagation();fn();};
+  el.addEventListener('pointerdown',e=>{e.preventDefault();e.stopPropagation();},{passive:false});
+  el.addEventListener('pointerup',fire,{passive:false});
+  el.addEventListener('click',fire,{passive:false});
+  el.addEventListener('touchend',fire,{passive:false});
+}
+Object.entries(actionMap).forEach(([id,fn])=>bindAction(id,fn));
 document.getElementById('menu').addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();document.getElementById('panel').style.display='block'},{passive:false});
 document.getElementById('closePanel').addEventListener('pointerup',e=>{e.preventDefault();document.getElementById('panel').style.display='none'},{passive:false});
 document.getElementById('reset').addEventListener('pointerup',e=>{e.preventDefault();location.reload()},{passive:false});
