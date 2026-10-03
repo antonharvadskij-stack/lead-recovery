@@ -323,10 +323,21 @@ function emergencyRender(){
   ctx.fillStyle="#fff";ctx.font="900 22px system-ui";ctx.textAlign="center";ctx.fillText("ПОСЛЕДНИЙ ОСТРОВ",0,-145);
   ctx.font="700 14px system-ui";ctx.fillText("Загрузка игровой сцены…",0,150);ctx.restore();
 }
+function safeSceneRender(){
+  ctx.save();ctx.clearRect(0,0,W,H);
+  const g=ctx.createLinearGradient(0,0,0,H);g.addColorStop(0,'#74b9d2');g.addColorStop(1,'#183b4c');ctx.fillStyle=g;ctx.fillRect(0,0,W,H);
+  ctx.fillStyle='#c9aa6e';ctx.beginPath();ctx.ellipse(W/2,H/2+15,Math.min(W*.46,650),Math.min(H*.38,430),0,0,Math.PI*2);ctx.fill();
+  ctx.fillStyle='#34784e';ctx.beginPath();ctx.ellipse(W/2,H/2,Math.min(W*.41,580),Math.min(H*.33,365),0,0,Math.PI*2);ctx.fill();
+  // guaranteed visible landmark set
+  const pts=[[.31,.39,'#687276'],[.69,.38,'#303b42'],[.35,.68,'#d28a43'],[.66,.67,'#806b49']];
+  for(const [px,py,c] of pts){ctx.fillStyle=c;ctx.beginPath();ctx.arc(W*px,H*py,30,0,Math.PI*2);ctx.fill()}
+  const px=W/2,py=H/2;ctx.fillStyle='#70462c';ctx.fillRect(px-13,py-22,26,38);ctx.fillStyle='#b95645';ctx.beginPath();ctx.moveTo(px-24,py-22);ctx.lineTo(px,py-43);ctx.lineTo(px+24,py-22);ctx.closePath();ctx.fill();ctx.fillStyle='#68d2df';ctx.beginPath();ctx.arc(px,py-52,12,0,Math.PI*2);ctx.fill();
+  ctx.restore();
+}
 function loop(now){
-  const dt=Math.min(.04,(now-last)/1000);
-  last=now;
-  try{update(dt)}catch(e){console.error(e);emergencyRender()}
+  const dt=Math.min(.04,(now-last)/1000);last=now;
+  try{update(dt)}catch(e){console.error('update',e)}
+  try{draw()}catch(e){console.error('draw',e);safeSceneRender()}
   requestAnimationFrame(loop);
 }
 async function initYandex(){try{if(window.YaGames){ysdk=await YaGames.init();if(ysdk?.features?.LoadingAPI)ysdk.features.LoadingAPI.ready();if(ysdk?.features?.GameplayAPI)ysdk.features.GameplayAPI.start()}}catch(e){console.log("Yandex SDK unavailable",e)}}
