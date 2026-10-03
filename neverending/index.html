@@ -214,6 +214,7 @@ function input(){
 }
 function updateZone(){const d=Math.hypot(player.x,player.y);islandZone=d<320?'camp':d<720?'forest':'shore';}
 function update(dt){
+  updateEffects(dt);
   if(gameOver){draw();return}
   const v=input();const speed=155;worldTime+=dt;updateZone();attackCooldown=Math.max(0,attackCooldown-dt);
   if(v.m>.05&&state.en>0){
