@@ -484,8 +484,8 @@ export function generatePlaceholderTextures(scene: Phaser.Scene) {
       c.fill();
       c.fillStyle = "rgba(190,225,120,.16)"; c.beginPath(); c.arc(x-r*.28,y-r*.3,r*.28,0,TAU); c.fill();
     }
-    // foreground leaf clusters for depth
-    for (let i=0;i<20;i++){ const a=i*TAU/20; const x=90+Math.cos(a)*55; const y=92+Math.sin(a)*45; c.fillStyle=i%2?"#2d5a32":"#417545"; c.beginPath(); c.ellipse(x,y,10,5,a,0,TAU); c.fill(); }
+    // atmospheric canopy highlights and foreground leaf clusters for depth
+    for (let i=0;i<34;i++){ const a=i*TAU/34; const x=90+Math.cos(a)*58; const y=92+Math.sin(a)*48; const rr=7+(i%4)*2; const grad=c.createRadialGradient(x-2,y-3,1,x,y,rr); grad.addColorStop(0,i%3?"#5d9148":"#79aa55"); grad.addColorStop(1,i%2?"#244a2a":"#315f31"); c.fillStyle=grad; c.beginPath(); c.ellipse(x,y,rr,rr*.58,a,0,TAU); c.fill(); }
   });
   canvasTex(scene, K.rock, 110, 78, (c) => {
     const g = c.createLinearGradient(20, 5, 70, 60);
