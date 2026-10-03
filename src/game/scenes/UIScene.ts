@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
-type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
+type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; sanity?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
 type Memory = { steps: number; rescues: number; scars: number; echoes: number; mood: number; last: string; context: { id: string; label: string; hint: string } };
 const FONT = { fontFamily: "Georgia, serif", color: "#efe2b8", stroke: "#0a0f18", strokeThickness: 4 };
 
@@ -107,7 +107,7 @@ export class UIScene extends Phaser.Scene {
     const g = this.hpBar.clear();
     g.fillStyle(0x000000, 0.55).fillRoundedRect(22, 56, 264, 22, 6);
     g.fillStyle(h.hp > 30 ? 0xd94a3a : 0xff2a2a).fillRoundedRect(25, 59, 258 * (h.hp / h.maxHp), 16, 5);
-    this.info.setText(`HP ${Math.round(h.hp)}   ·   День ${h.day ?? 1}`);
+    this.info.setText(`HP ${Math.round(h.hp)}   ·   Голод ${Math.round(h.hunger ?? 100)}   ·   Рассудок ${Math.round(h.sanity ?? 100)}   ·   День ${h.day ?? 1}`);
     const m = this.registry.get("memory") as Memory | undefined;
     if (m) {
       const label = this.contextBtn.getData("label") as Phaser.GameObjects.Text;
