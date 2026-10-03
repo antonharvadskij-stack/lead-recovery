@@ -44,8 +44,8 @@ export class UIScene extends Phaser.Scene {
     this.memoryBox=this.add.container(W/2,H/2,[panel,title,desc,stats,last,close,ct]).setDepth(300).setVisible(false);
     this.memoryBox.setData("stats",stats); this.memoryBox.setData("last",last);
 
-    this.contextBtn = this.add.container(W - 175, H - 215).setDepth(250);
-    const cb=this.add.rectangle(0,0,300,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive();
+    // Боевые действия находятся в отдельной нижней панели: кнопки никогда не перекрываются.\n    const combatY = H - 92;\n    this.contextBtn = this.add.container(W - 285, combatY).setDepth(250);
+    const cb=this.add.rectangle(0,0,210,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive();
     const ct2=this.add.text(0,-7,"",{...FONT,fontFamily:"sans-serif",fontSize:"17px",align:"center"}).setOrigin(.5);
     const hint=this.add.text(0,17,"",{fontFamily:"sans-serif",fontSize:"11px",color:"#a9c3c7"}).setOrigin(.5);
     this.contextBtn.add([cb,ct2,hint]); this.contextBtn.setData("button",cb); this.contextBtn.setData("label",ct2); this.contextBtn.setData("hint",hint);
@@ -53,7 +53,7 @@ export class UIScene extends Phaser.Scene {
 
     this.joyBase=this.add.circle(0,0,60,0xffffff,.08).setStrokeStyle(3,0xffffff,.3).setVisible(false).setDepth(200);
     this.joyKnob=this.add.circle(0,0,26,0xffffff,.3).setVisible(false).setDepth(201);
-    const atk=this.add.circle(W-110,H-115,58,0xb8342a,.55).setStrokeStyle(4,0xffd27a,.7).setInteractive().setDepth(250);
+    const atk=this.add.circle(W-82,combatY,58,0xb8342a,.55).setStrokeStyle(4,0xffd27a,.7).setInteractive().setDepth(250);
     this.add.text(atk.x,atk.y,"Удар",{...FONT,fontFamily:"sans-serif",fontSize:"20px"}).setOrigin(.5).setDepth(251);
     atk.on("pointerdown",()=>this.input_().attack=true);
 
@@ -74,7 +74,7 @@ export class UIScene extends Phaser.Scene {
     const btnT=this.add.text(btn.x,btn.y,"Заново",{...FONT,fontFamily:"sans-serif",fontSize:"26px"}).setOrigin(.5);
     btn.on("pointerdown",()=>{this.overBox.setVisible(false);this.scene.get("Game").scene.restart();});
     this.overBox=this.add.container(0,0,[bg,title2,stats2,btn,btnT]).setVisible(false).setDepth(400); this.overBox.setData("stats",stats2);
-    this.events.once("shutdown",()=>{});
+    // Пересчитываем боевую панель при повороте/изменении размера экрана.\n    this.scale.on("resize", (size: Phaser.Structs.Size) => {\n      const w = size.width, h = size.height, y = h - 92;\n      this.contextBtn.setPosition(Math.max(120, w - 285), y);\n      atk.setPosition(Math.max(82, w - 82), y);\n      if (w < 560) {\n        this.contextBtn.setPosition(w - 125, h - 155);\n        atk.setPosition(w - 70, h - 70);\n      }\n    });\n    this.events.once("shutdown",()=>{});
   }
 
   private input_() {
