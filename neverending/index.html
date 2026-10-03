@@ -85,7 +85,7 @@ window.addEventListener('unhandledrejection',function(e){
   <div class="row"><span>🪨 Камень</span><b id="pStone">10</b></div>
   <div class="row"><span>🪙 Монеты</span><b id="pCoins">100</b></div>
   <div class="row"><span>🌲 Собрано деревьев</span><b id="pTrees">0</b></div>
-  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="openUpgrades">⚒️ Улучшения</button><button id="shop">🛒 Магазин</button><button id="food">🥩 Еда</button><button id="reset">Новая игра</button></div>
+  <div style="display:flex;gap:8px;margin-top:15px"><button id="closePanel" class="dark">Закрыть</button><button id="openUpgrades">⚒️ Улучшения</button><button id="shop">🛒 Магазин</button><button id="rewardAd">🎬 +50 🪙</button><button id="food">🥩 Еда</button><button id="reset">Новая игра</button></div>
 </div>
 <script>
 (() => {
@@ -276,6 +276,19 @@ function doCollect(){
   else if(r){r.hp--;state.stone+=3*state.gather;burst(r.x,r.y,'#c5d0d4',7);floatText(r.x,r.y-32,'+3 🪨','#dce8ea');if(r.hp<=0){r.x=99999;respawnResource("rock")}toast("+3 камня");saveGame()}
   else toast('Подойдите ближе к ресурсу');
 }
+function showRewardAd(){
+ if(!ysdk?.adv?.showRewardedVideo){toast('Реклама пока недоступна');return}
+ hidePanel('panel');
+ try{
+  ysdk.features?.GameplayAPI?.stop?.();
+  ysdk.adv.showRewardedVideo({callbacks:{
+   onOpen:()=>{},
+   onRewarded:()=>{state.coins+=50;toast('🎬 Награда за рекламу · +50 🪙');saveGame();updateUI()},
+   onClose:()=>{ysdk.features?.GameplayAPI?.start?.()},
+   onError:()=>{ysdk.features?.GameplayAPI?.start?.();toast('Реклама пока недоступна')}
+  }});
+ }catch(e){ysdk.features?.GameplayAPI?.start?.();toast('Реклама пока недоступна')}
+}
 function useFood(){if(state.food>0){state.food--;state.hunger=Math.min(100,state.hunger+35);state.hp=Math.min(state.maxHp,state.hp+5);state.en=Math.min(state.maxEn,state.en+15);toast('🥩 Еда использована · +5 ❤️');saveGame()}else toast('Нет запасов еды')}
 function buyItem(kind){const d={sword:[120,'weapon',1],armor:[150,'armor',1],food:[15,'food',1]}[kind];if(state.coins<d[0]){toast('Нужно '+d[0]+' 🪙');return}state.coins-=d[0];state[d[1]]+=d[2];toast('Куплено');saveGame();updateUI()}
 function doLoot(){
@@ -335,7 +348,7 @@ function buyUpgrade(kind){
  state.coins-=data[0];state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
 }
 document.addEventListener('click',e=>{const b=e.target.closest?.('#openUpgrades');if(b){e.preventDefault();e.stopPropagation();const el=document.getElementById('upgradePanel');if(el){el.style.display='block';el.style.zIndex='100001';el.style.pointerEvents='auto';el.style.position='fixed';el.style.left='50%';el.style.top='50%';el.style.transform='translate(-50%,-50%)';}}},{capture:true});
-document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openUpgrades()});if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('upgradePanel')};if(q('shopClose'))q('shopClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('shopPanel')};if(q('buySword'))q('buySword').onclick=()=>buyItem('sword');if(q('buyArmor'))q('buyArmor').onclick=()=>buyItem('armor');if(q('buyFood'))q('buyFood').onclick=()=>buyItem('food');if(q('shop'))q('shop').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel');showPanel('shopPanel')};if(q('food'))q('food').onclick=useFood;if(q('buildClose'))q('buildClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('buildPanel')};function showPanel(id){const el=q(id);if(el){el.style.display='block';el.style.zIndex='100000';el.style.pointerEvents='auto';}}function hidePanel(id){const el=q(id);if(el)el.style.display='none'}if(q('menu')){q('menu').onclick=e=>{e.preventDefault();e.stopPropagation();showPanel('panel')}}if(q('closePanel')){q('closePanel').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel')}}if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
+document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openUpgrades()});if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('upgradePanel')};if(q('shopClose'))q('shopClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('shopPanel')};if(q('buySword'))q('buySword').onclick=()=>buyItem('sword');if(q('buyArmor'))q('buyArmor').onclick=()=>buyItem('armor');if(q('buyFood'))q('buyFood').onclick=()=>buyItem('food');if(q('shop'))q('shop').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel');showPanel('shopPanel')};if(q('rewardAd'))q('rewardAd').onclick=e=>{e.preventDefault();e.stopPropagation();showRewardAd()};if(q('food'))q('food').onclick=useFood;if(q('buildClose'))q('buildClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('buildPanel')};function showPanel(id){const el=q(id);if(el){el.style.display='block';el.style.zIndex='100000';el.style.pointerEvents='auto';}}function hidePanel(id){const el=q(id);if(el)el.style.display='none'}if(q('menu')){q('menu').onclick=e=>{e.preventDefault();e.stopPropagation();showPanel('panel')}}if(q('closePanel')){q('closePanel').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel')}}if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
 document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:()=>document.getElementById('buildPanel').style.display='block'};
 function bindAction(id,fn){
