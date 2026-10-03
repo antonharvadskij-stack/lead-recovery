@@ -2,7 +2,6 @@ import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
 type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; sanity?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
-type Memory = { steps: number; rescues: number; scars: number; echoes: number; mood: number; last: string; context: { id: string; label: string; hint: string } };
 const FONT = { fontFamily: "Georgia, serif", color: "#efe2b8", stroke: "#0a0f18", strokeThickness: 4 };
 
 /** HUD, сенсорный джойстик и кнопка атаки. */
@@ -12,7 +11,6 @@ export class UIScene extends Phaser.Scene {
   private overBox!: Phaser.GameObjects.Container;
   private menuBox!: Phaser.GameObjects.Container;
   private contextBtn!: Phaser.GameObjects.Container;
-  private memoryBox!: Phaser.GameObjects.Container;
   private joyBase!: Phaser.GameObjects.Arc;
   private joyKnob!: Phaser.GameObjects.Arc;
   private joyId: number | null = null;
@@ -28,21 +26,6 @@ export class UIScene extends Phaser.Scene {
     this.add.text(24, 16, "NEVERENDING", { ...FONT, fontSize: "28px" }).setDepth(10);
     this.hpBar = this.add.graphics().setDepth(10);
     this.info = this.add.text(24, 84, "", { ...FONT, fontFamily: "sans-serif", fontSize: "16px" }).setDepth(10);
-
-    const memBtn = this.add.rectangle(W - 68, 34, 112, 42, 0x172838, .95).setStrokeStyle(2, 0xd8b66a, .8).setInteractive();
-    this.add.text(memBtn.x, memBtn.y, "ПАМЯТЬ", { ...FONT, fontFamily: "sans-serif", fontSize: "15px" }).setOrigin(.5).setDepth(11);
-    memBtn.on("pointerdown", () => this.memoryBox.setVisible(!this.memoryBox.visible));
-
-    const panel = this.add.rectangle(0,0,470,390,0x09131d,.97).setStrokeStyle(3,0xd8b66a,.85);
-    const title = this.add.text(0,-160,"ПАМЯТЬ МИРА",{...FONT,fontSize:"30px"}).setOrigin(.5);
-    const desc = this.add.text(0,-122,"Здесь сохраняются не вещи, а последствия",{fontFamily:"sans-serif",fontSize:"15px",color:"#b7c5c9"}).setOrigin(.5);
-    const stats = this.add.text(0,-72,"",{fontFamily:"sans-serif",fontSize:"18px",color:"#efe2b8",align:"center"}).setOrigin(.5);
-    const last = this.add.text(0,18,"",{fontFamily:"sans-serif",fontSize:"16px",color:"#d6e7e9",align:"center",wordWrap:{width:390}}).setOrigin(.5);
-    const close = this.add.rectangle(0,132,170,44,0x172838,1).setStrokeStyle(2,0xd8b66a,.7).setInteractive();
-    const ct = this.add.text(0,132,"ЗАКРЫТЬ",{...FONT,fontFamily:"sans-serif",fontSize:"16px"}).setOrigin(.5);
-    close.on("pointerdown",()=>this.memoryBox.setVisible(false));
-    this.memoryBox=this.add.container(W/2,H/2,[panel,title,desc,stats,last,close,ct]).setDepth(300).setVisible(false);
-    this.memoryBox.setData("stats",stats); this.memoryBox.setData("last",last);
 
     // Боевые действия находятся в отдельной нижней панели: кнопки никогда не перекрываются.
     const combatY = Math.max(110, H - 150);
@@ -108,20 +91,6 @@ export class UIScene extends Phaser.Scene {
     g.fillStyle(0x000000, 0.55).fillRoundedRect(22, 56, 264, 22, 6);
     g.fillStyle(h.hp > 30 ? 0xd94a3a : 0xff2a2a).fillRoundedRect(25, 59, 258 * (h.hp / h.maxHp), 16, 5);
     this.info.setText(`HP ${Math.round(h.hp)}   ·   Голод ${Math.round(h.hunger ?? 100)}   ·   Рассудок ${Math.round(h.sanity ?? 100)}   ·   День ${h.day ?? 1}`);
-    const m = this.registry.get("memory") as Memory | undefined;
-    if (m) {
-      const label = this.contextBtn.getData("label") as Phaser.GameObjects.Text;
-      const hint = this.contextBtn.getData("hint") as Phaser.GameObjects.Text;
-      label.setText(m.context.label); hint.setText(m.context.hint);
-      const stats = this.memoryBox.getData("stats") as Phaser.GameObjects.Text;
-      const last = this.memoryBox.getData("last") as Phaser.GameObjects.Text;
-      stats.setText(`Следы: ${Math.floor(m.steps)}
-Связи: ${m.rescues}
-Шрамы мира: ${m.scars}
-Эхо: ${m.echoes}
-Состояние мира: ${m.mood > 0 ? "откликается" : m.mood < 0 ? "насторожено" : "не определено"}`);
-      last.setText(m.last || "Пока мир ничего не запомнил.");
-    }
     if (h.over && !this.overBox.visible) {
       (this.overBox.getData("stats") as Phaser.GameObjects.Text).setText(`Волна ${h.wave} · Убито врагов: ${h.kills}`);
       this.overBox.setVisible(true);
