@@ -4,8 +4,8 @@ import { generateIsland } from "../assets/ProceduralTextures";
 import { WORLD_SIZE } from "../config";
 import { Platform } from "../platform/yandex";
 
-const ISLAND_R = 1160;
-const WALK_R = 1080;
+const ISLAND_R = 2380;
+const WALK_R = 2260;
 type Sprite = Phaser.Physics.Arcade.Sprite;
 
 const STATS: Record<EnemyKind, { hp: number; speed: number; dmg: number; range: number; cd: number; blood: number[] }> = {
@@ -131,15 +131,13 @@ export class GameScene extends Phaser.Scene {
       else decor(K.bush, x, y, 20, false);
     }
 
-    // База: ферма, мастерская, стена и сторожевая башня вокруг лагеря.
-    this.createBaseBuildings(S / 2, S / 2);
     this.nightOverlay = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x07152b, 0)
       .setScrollFactor(0).setDepth(9000).setInteractive(false);
 
     this.createExplorationZones(S / 2, S / 2, rng);
 
-    // костёр + свет
-    this.add.image(S / 2, S / 2, K.campfire).setDepth(S / 2 - 1);
+    // Единственный стартовый объект базы — костёр.
+    const campfire = this.add.image(S / 2, S / 2, K.campfire).setDepth(S / 2 - 1).setData("campfire", true);
     const glow = this.add.image(S / 2, S / 2 - 10, K.glow).setScale(3).setTint(0xff9a3d).setBlendMode(Phaser.BlendModes.ADD).setAlpha(0.55).setDepth(5000);
     this.tweens.add({ targets: glow, scale: 3.3, alpha: 0.7, duration: 180, yoyo: true, repeat: -1, ease: "Sine.inOut" });
     this.add.particles(S / 2, S / 2 - 8, K.particle, {
@@ -188,7 +186,6 @@ export class GameScene extends Phaser.Scene {
 
   private pushHud() {
     const context = this.getContextAction();
-    this.registry.set("memory", { ...this.memory, mood: this.worldMood, last: this.lastMemoryAction, context });
     this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, sanity: this.sanity, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
   }
 
@@ -279,21 +276,25 @@ export class GameScene extends Phaser.Scene {
   }
 
   private getContextAction() {
+    const nearCampfire = Phaser.Math.Distance.Between(this.player.x, this.player.y, this.center.x, this.center.y) < 130;
     const nearbyChest = this.chests.find(c => !c.getData("opened") && Phaser.Math.Distance.Between(c.x, c.y, this.player.x, this.player.y) < 105);
-    if (nearbyChest) return { id: "chest", label: "ОТКРЫТЬ", hint: "Проверить находку" };
+    if (nearbyChest) return { id: "chest", label: "ОТКРЫТЬ", hint: "Осмотреть находку" };
+    if (nearCampfire) return { id: "campfire", label: "КОСТЁР", hint: "Отдохнуть и восстановить рассудок" };
     if (this.resources.food > 0 && this.hunger < 85) return { id: "eat", label: "СЪЕСТЬ ЕДУ", hint: "Восстановить голод" };
-    return { id: "camp", label: "КОСТЁР", hint: "Подготовиться к ночи" };
+    return { id: "none", label: "НЕТ ДЕЙСТВИЯ", hint: "Исследуйте мир" };
   }
 
   private contextAction() {
     const a = this.getContextAction();
     if (a.id === "chest") {
-      const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, x.y, this.player.x, this.player.y) < 105);
+      const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, y = x.y, this.player.x, this.player.y) < 105);
       if (c) this.openChest(c);
     } else if (a.id === "eat") {
       this.eatFood();
-    } else {
-      this.buildCamp();
+    } else if (a.id === "campfire") {
+      this.hunger = Math.min(100, this.hunger + 8);
+      this.sanity = Math.min(100, this.sanity + 18);
+      this.hp = Math.min(100, this.hp + 10);
     }
     this.pushHud();
   }
@@ -487,7 +488,7 @@ export class GameScene extends Phaser.Scene {
   private updateBiomeEffects(isNight: boolean) {
     const px = this.player.x, py = this.player.y;
     const biomes = [
-      { x: this.worldCenterX, y: this.worldCenterY - 1500, r: 330, nightSanity: 0.20 },
+      { x: this.center.x, y: this.center.y - 1500, r: 330, nightSanity: 0.20 },
       { x: this.worldCenterX + 1120, y: this.worldCenterY - 1080, r: 320, nightSanity: 0.10 },
       { x: this.worldCenterX + 1550, y: this.worldCenterY, r: 340, nightSanity: 0.02 },
       { x: this.worldCenterX + 1050, y: this.worldCenterY + 1150, r: 320, nightSanity: 0.08 },
@@ -507,7 +508,6 @@ export class GameScene extends Phaser.Scene {
     this.hunger = Math.max(0, this.hunger - delta / 8500);
     if (this.hunger < 35) this.sanity = Math.max(0, this.sanity - delta / 7000);
     if (isNight) this.sanity = Math.max(0, this.sanity - delta / 9500);
-    this.updateBiomeEffects(isNight);
     else if (this.hunger > 60 && this.hp > 60) this.sanity = Math.min(100, this.sanity + delta / 18000);
     if (this.hunger <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 1700);
     if (this.sanity <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 2600);
@@ -544,8 +544,6 @@ export class GameScene extends Phaser.Scene {
   override update(_time: number, delta: number) {
     const now = _time;
     this.tickSurvival(delta);
-    if (Math.abs(this.player.body?.velocity.x ?? 0) + Math.abs(this.player.body?.velocity.y ?? 0) > 5) this.memory.steps += delta / 1000;
-    this.tickBaseAndNight(delta);
     const inp = (this.registry.get("input") ?? { x: 0, y: 0, attack: false, build: false, upgrade: false, eat: false }) as { x: number; y: number; attack: boolean; build?: boolean; upgrade?: boolean; eat?: boolean };
     if (inp.build) { inp.build = false; this.buildCamp(); }
     if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
