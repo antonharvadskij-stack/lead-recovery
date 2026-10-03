@@ -542,15 +542,32 @@ export class GameScene extends Phaser.Scene {
       // Враги больше НЕ атакуют игрока автоматически.
       // Они преследуют и наблюдают, а урон игрок получает только через явное игровое действие.
       if (!e.busy) {
-        if (this.over) e.s.setVelocity(0, 0);
-        else if (dist > st.range) {
+        if (this.over) {
+          e.s.setVelocity(0, 0);
+        } else if (e.hp < e.maxHp) {
+          // Враг реагирует только после того, как игрок первым его ранил.
           const sp = st.speed * (1 + (e.level - 1) * 0.12);
-          e.s.setVelocity((dx / dist) * sp, (dy / dist) * sp);
+          if (dist > st.range) {
+            e.s.setVelocity((dx / Math.max(dist, 1)) * sp, (dy / Math.max(dist, 1)) * sp);
+          } else {
+            e.s.setVelocity(0, 0);
+          }
           e.s.setFlipX(dx < 0);
         } else {
-          e.s.setVelocity(0, 0);
-          e.s.setFlipX(dx < 0);
-          // Вблизи враг лишь наблюдает: никакого самостоятельного удара.
+          // Нейтральные враги не бегут на игрока сами.
+          // Они медленно бродят по своей зоне и начинают преследование
+          // только после того, как игрок первым нанесёт им урон.
+          const t = now / 1000 + e.s.x * 0.001 + e.s.y * 0.001;
+          const wanderX = Math.sin(t * 0.7 + e.level) * 0.35;
+          const wanderY = Math.cos(t * 0.53 + e.level * 2) * 0.25;
+          const wander = new Phaser.Math.Vector2(wanderX, wanderY);
+          if (wander.lengthSq() > 0.01) {
+            wander.normalize().scale(st.speed * 0.18);
+            e.s.setVelocity(wander.x, wander.y);
+            if (Math.abs(wander.x) > 0.02) e.s.setFlipX(wander.x < 0);
+          } else {
+            e.s.setVelocity(0, 0);
+          }
         }
       }
       this.clamp(e.s);
