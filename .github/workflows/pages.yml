@@ -19,7 +19,7 @@ jobs:
       - run: bunx vite build --config vite.game.config.ts
       - run: |
           mkdir -p _site
-          if [ -d .output/public ]; then cp -R .output/public/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; elif [ -d dist/client ]; then cp -R dist/client/. _site/; else echo "No static build output"; exit 1; fi
+          if [ -d dist ]; then cp -R dist/. _site/; elif [ -d .output/public ]; then cp -R .output/public/. _site/; elif [ -d dist/client ]; then cp -R dist/client/. _site/; else echo "No static build output"; exit 1; fi
           touch _site/.nojekyll
           cp _site/index.html _site/404.html
           if [ ! -f _site/index.html ]; then echo "No index.html in Pages artifact"; exit 1; fi
