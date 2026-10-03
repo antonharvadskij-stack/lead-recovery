@@ -215,12 +215,8 @@ function update(dt){
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
     let alive=enemies.filter(e=>e.alive).length;
-    if(alive<12){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||dist({x,y},player)<420);enemies.push({x,y,r:20,hp:(i%3===0?5:3)+Math.floor(state.level/4),max:(i%3===0?5:3)+Math.floor(state.level/4),spd:rnd(22,34)+state.level,phase:rnd(0,6),alive:true,type:Math.random()<.28?'brute':'raider'});toast('👹 В лесу появился новый враг')}
+    if(alive<12){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||dist({x,y},player)<420);enemies.push({x,y,r:20,hp:(alive%3===0?5:3)+Math.floor(state.level/4),max:(alive%3===0?5:3)+Math.floor(state.level/4),spd:rnd(22,34)+state.level,phase:rnd(0,6),alive:true,type:Math.random()<.28?'brute':'raider'});toast('👹 В лесу появился новый враг')}
   }
-  if(state.hp<=0&&!gameOver){gameOver=true;document.getElementById("gameOverText").textContent="День "+state.day+" · уровень "+state.level+" · врагов побеждено: "+state.kills;document.getElementById("gameOver").style.display="block";saveGame()}
-  player.attack=Math.max(0,player.attack-dt);player.hit=Math.max(0,player.hit-dt);
-  const cycle=worldTime%60;night=cycle>42?Math.min(1,(cycle-42)/8):cycle<8?Math.max(0,(8-cycle)/8):0;const newDay=Math.floor(worldTime/60)+1;if(newDay!==state.day){state.day=newDay;state.level=Math.max(state.level,1+Math.floor((newDay-1)/2));toast('🌅 Наступил день '+state.day);saveGame()}
-  draw();updateUI();
 }
   if(state.hp<=0&&!gameOver){gameOver=true;document.getElementById("gameOverText").textContent="День "+state.day+" · уровень "+state.level+" · врагов побеждено: "+state.kills;document.getElementById("gameOver").style.display="block";saveGame()}
   player.attack=Math.max(0,player.attack-dt);player.hit=Math.max(0,player.hit-dt);
