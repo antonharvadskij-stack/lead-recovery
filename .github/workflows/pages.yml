@@ -8,7 +8,7 @@ permissions:
   pages: write
   id-token: write
 concurrency:
-  group: pages-deploy-v3
+  group: pages-deploy-v4
   cancel-in-progress: true
 jobs:
   deploy:
@@ -18,10 +18,20 @@ jobs:
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
       - uses: actions/checkout@v6
+      - uses: oven-sh/setup-bun@v2
       - uses: actions/configure-pages@v5
+      - name: Install dependencies
+        run: bun install
+      - name: Build application
+        run: bun run build
+      - name: Prepare Pages artifact
+        run: |
+          mkdir -p _site
+          if [ -d dist/client ]; then cp -R dist/client/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; else echo "No static build output"; exit 1; fi
+          touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
-          path: '.'
+          path: '_site'
       - name: Deploy
         id: deployment
         uses: actions/deploy-pages@v4
