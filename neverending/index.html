@@ -278,7 +278,7 @@ function update(dt){
   // Camera and every world object use the same world coordinates.
   // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.
   cam.x=player.x;cam.y=player.y;
-  for(const e of enemies){if(!e.alive)continue;const ed=Math.hypot(e.x,e.y);const etier=e.type==='champion'?3:e.type==='brute'?2:1;if(etier>state.zone)continue;const d=dist(e,player);const reach=e.type==='champion'?64:e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=Math.max(1,Math.round((e.type==='brute'?6:3)*(1-state.armor*.2)));state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.18;if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';document.getElementById('gameOverText').textContent='Вы погибли на '+state.day+' дне · побед: '+state.kills+' · монет: '+state.coins;saveGame()}}}}
+  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='champion'?64:e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=Math.max(1,Math.round((e.type==='brute'?6:3)*(1-state.armor*.2)));state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.18;if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';document.getElementById('gameOverText').textContent='Вы погибли на '+state.day+' дне · побед: '+state.kills+' · монет: '+state.coins;saveGame()}}}}
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
     let alive=enemies.filter(e=>e.alive).length;
@@ -330,7 +330,7 @@ function showRewardAd(){
   }});
   return;
  }
- toast('Реклама пока недоступна');
+ state.coins+=50;toast('🎁 Тестовая награда · +50 🪙');saveGame();updateUI();
 }
 window.onNativeRewarded=function(){
  state.coins+=50;
@@ -367,7 +367,7 @@ function interactWorld(){
 }
 function drawBuildStructure(b){
  const x=sx(b.x),y=sy(b.y);shadow(b.x,b.y+35,72,18,.36);ctx.save();ctx.translate(x,y);
- if(b.type==='tower'){drawTower(b);ctx.restore();return} if(b.type==='hut'){drawHut(b);ctx.restore();return} if(b.type==='camp'){drawCamp(b);ctx.restore();return}
+ if(b.type==='tower'){ctx.restore();drawTower(b);return} if(b.type==='hut'){ctx.restore();drawHut(b);return} if(b.type==='camp'){ctx.restore();drawCamp(b);return}
  ctx.shadowBlur=10;
  if(b.type==='workshop'){const g=ctx.createLinearGradient(0,-35,0,35);g.addColorStop(0,'#c98b50');g.addColorStop(1,'#674027');ctx.fillStyle=g;ctx.fillRect(-42,-25,84,55);ctx.fillStyle='#8e4b39';ctx.beginPath();ctx.moveTo(-50,-25);ctx.lineTo(0,-62);ctx.lineTo(50,-25);ctx.closePath();ctx.fill();ctx.fillStyle='#8fd9df';ctx.fillRect(12,-8,20,18);ctx.fillStyle='#e5c27b';ctx.fillRect(-9,8,18,22);ctx.fillStyle='#30363a';ctx.fillRect(-30,-10,14,18);ctx.fillStyle='#d9a34e';ctx.beginPath();ctx.arc(-23,-18,7,0,Math.PI*2);ctx.fill()}
  else if(b.type==='wall'){const g=ctx.createLinearGradient(0,-18,0,18);g.addColorStop(0,'#b8c1c6');g.addColorStop(1,'#59656c');ctx.fillStyle=g;ctx.fillRect(-55,-16,110,32);ctx.fillStyle='#4d5960';for(let j=-48;j<55;j+=18)ctx.fillRect(j,-16,4,32);ctx.fillStyle='#d7dee1';ctx.fillRect(-50,-20,100,5)}
@@ -398,6 +398,7 @@ function buyUpgrade(kind){
  const cost=state.workshops>0?Math.floor(data[0]*.8):data[0];if(state.coins<cost){toast('Нужно '+cost+' 🪙');return}state.coins-=cost;state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
 }
 document.addEventListener('click',e=>{const b=e.target.closest?.('#openUpgrades');if(b){e.preventDefault();e.stopPropagation();const el=document.getElementById('upgradePanel');if(el){el.style.display='block';el.style.zIndex='100001';el.style.pointerEvents='auto';el.style.position='fixed';el.style.left='50%';el.style.top='50%';el.style.transform='translate(-50%,-50%)';}}},{capture:true});
+const rewardButton=document.getElementById('rewardAd');if(rewardButton&&!rewardButton.dataset.bound){rewardButton.dataset.bound='1';rewardButton.addEventListener('pointerup',e=>{e.preventDefault();e.stopPropagation();showRewardAd()},{passive:false});}
 document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').addEventListener('click',e=>{e.preventDefault();e.stopPropagation();openUpgrades()});if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('upgradePanel')};if(q('shopClose'))q('shopClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('shopPanel')};if(q('buySword'))q('buySword').onclick=()=>buyItem('sword');if(q('buyArmor'))q('buyArmor').onclick=()=>buyItem('armor');if(q('buyFood'))q('buyFood').onclick=()=>buyItem('food');if(q('shop'))q('shop').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel');showPanel('shopPanel')};if(q('rewardAd'))q('rewardAd').onclick=e=>{e.preventDefault();e.stopPropagation();showRewardAd()};if(q('food'))q('food').onclick=useFood;if(q('buildClose'))q('buildClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('buildPanel')};function showPanel(id){const el=q(id);if(el){el.style.display='block';el.style.zIndex='100000';el.style.pointerEvents='auto';}}function hidePanel(id){const el=q(id);if(el)el.style.display='none'}if(q('menu')){q('menu').onclick=e=>{e.preventDefault();e.stopPropagation();showPanel('panel')}}if(q('closePanel')){q('closePanel').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel')}}if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
 document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:()=>document.getElementById('buildPanel').style.display='block'};
