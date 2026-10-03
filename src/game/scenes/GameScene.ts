@@ -4,8 +4,8 @@ import { generateIsland } from "../assets/ProceduralTextures";
 import { WORLD_SIZE } from "../config";
 import { Platform } from "../platform/yandex";
 
-const ISLAND_R = 1000;
-const WALK_R = 930;
+const ISLAND_R = 1160;
+const WALK_R = 1080;
 type Sprite = Phaser.Physics.Arcade.Sprite;
 
 const STATS: Record<EnemyKind, { hp: number; speed: number; dmg: number; range: number; cd: number; blood: number[] }> = {
@@ -79,9 +79,9 @@ export class GameScene extends Phaser.Scene {
       }
       return img;
     };
-    for (let i = 0; i < 40; i++) {
+    for (let i = 0; i < 62; i++) {
       const a = rng.frac() * Math.PI * 2;
-      const d = 220 + Math.sqrt(rng.frac()) * 640;
+      const d = 230 + Math.sqrt(rng.frac()) * 820;
       const x = S / 2 + Math.cos(a) * d;
       const y = S / 2 + Math.sin(a) * d;
       const t = rng.frac();
@@ -151,13 +151,13 @@ export class GameScene extends Phaser.Scene {
   private spawn() {
     if (this.over) return;
     const r = Math.random();
-    const kind: EnemyKind = this.wave >= 2 && r < 0.18 ? "brute" : r < 0.5 ? "runner" : "walker";
-    const level = Phaser.Math.Clamp(1 + Math.floor(Math.random() * (1 + this.wave / 3)), 1, 3);
+    const kind: EnemyKind = this.wave >= 3 && r < 0.22 ? "brute" : r < 0.48 ? "runner" : "walker";
+    const level = Phaser.Math.Clamp(1 + Math.floor(Math.random() * Math.min(3, 1 + this.wave / 2)), 1, 3);
     const key = enemyTextureKey(kind, level);
     ensureAnims(this, key);
     const a = Math.random() * Math.PI * 2;
-    const x = this.center.x + Math.cos(a) * 880;
-    const y = this.center.y + Math.sin(a) * 880;
+    const x = this.center.x + Math.cos(a) * 1030;
+    const y = this.center.y + Math.sin(a) * 1030;
     const s = this.physics.add.sprite(x, y, key, 0).setOrigin(0.5, (CHAR_FRAME - 12) / CHAR_FRAME);
     const sc = 1 + (level - 1) * 0.1;
     s.setScale(sc);
