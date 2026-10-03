@@ -562,6 +562,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   override update(_time: number, delta: number) {
+    const now = _time;
     this.tickSurvival(delta);
     if (Math.abs(this.player.body?.velocity.x ?? 0) + Math.abs(this.player.body?.velocity.y ?? 0) > 5) this.memory.steps += delta / 1000;
     this.tickBaseAndNight(delta);
