@@ -460,6 +460,9 @@ export class GameScene extends Phaser.Scene {
     if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
     if (inp.eat) { inp.eat = false; this.eatFood(); }
     if ((inp as any).craft) { (inp as any).craft = false; this.craftAtWorkshop(); }
+    for (const type of ["farm","workshop","wall","tower"] as const) {
+      if ((inp as any)[type]) { (inp as any)[type] = false; this.upgradeBuilding(type); }
+    }
     const k = this.keys;
     if (!this.over) {
       if (Phaser.Input.Keyboard.JustDown(k.SPACE) || Phaser.Input.Keyboard.JustDown(k.J) || inp.attack) {
