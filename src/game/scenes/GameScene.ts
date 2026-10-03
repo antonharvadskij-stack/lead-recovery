@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import * as Phaser from "phaser";
 import { ATTACK_FRAMES, CHAR_FRAME, TEXTURE_KEYS as K, WALK_FRAMES, enemyTextureKey, type EnemyKind } from "../assets/manifest";
 import { generateIsland } from "../assets/ProceduralTextures";
 import { WORLD_SIZE } from "../config";
