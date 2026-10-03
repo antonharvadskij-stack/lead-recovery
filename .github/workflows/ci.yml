@@ -2,7 +2,7 @@ name: CI
 
 on:
   push:
-    branches: ["main"]
+    branches: ["main", "neverending-phaser"]
   pull_request:
     branches: ["main"]
 
