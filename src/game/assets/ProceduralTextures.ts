@@ -554,7 +554,10 @@ export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => n
     grass.addColorStop(0, "#5c8a45");
     grass.addColorStop(1, "#3d6534");
     blob(r - 18, grass);
-    // береговая кромка и крупные пятна рельефа\n    c.strokeStyle = "rgba(240,220,160,.32)"; c.lineWidth = 10;\n    c.beginPath(); for(let i=0;i<=100;i++){const a=i*TAU/100;const rr=r+2+Math.sin(a*5)*5; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();\n    for (let i = 0; i < 260; i++) {
+    // береговая кромка и крупные пятна рельефа
+    c.strokeStyle = "rgba(240,220,160,.32)"; c.lineWidth = 10;
+    c.beginPath(); for(let i=0;i<=100;i++){const a=i*TAU/100;const rr=r+2+Math.sin(a*5)*5; c.lineTo(cx+Math.cos(a)*rr,cx+Math.sin(a)*rr);} c.stroke();
+    for (let i = 0; i < 260; i++) {
       const a = rng() * TAU;
       const d = Math.sqrt(rng()) * (r - 40);
       const rr = 6 + rng() * 26;
