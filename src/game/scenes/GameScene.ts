@@ -238,6 +238,10 @@ export class GameScene extends Phaser.Scene {
         const dx = e.s.x - this.player.x;
         const dy = e.s.y - this.player.y;
         if (Math.abs(dy) < 55 && dx * dir > -15 && Math.abs(dx) < 95) this.damageEnemy(e, 20 + this.weaponLevel * 4 + Phaser.Math.Between(0, 8), dir);
+      // Первый удар создаёт «связь»: существо запоминает игрока.
+      e.s.setData("awakened", true);
+      this.worldMood = Math.max(-10, this.worldMood - 1);
+      this.lastMemoryAction = "Ты разбудил существо. Теперь оно знает, кто ты.";
       }
     });
   }
