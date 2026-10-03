@@ -60,7 +60,7 @@ jobs:
           public class MainActivity extends BridgeActivity {
               private RewardedAd rewardedAd;
               private RewardedAdLoader rewardedAdLoader;
-              private static final String DEMO_REWARDED_ID = "demo-rewarded-yandex";
+              private static final String DEMO_REWARDED_ID = "R-M-20165656-1";
 
               @Override
               public void onCreate(Bundle savedInstanceState) {
