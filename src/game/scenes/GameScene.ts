@@ -72,6 +72,7 @@ export class GameScene extends Phaser.Scene {
   private lastMemoryAction = "";
   private worldMood = 0;
   private echoGroup!: Phaser.GameObjects.Group;
+  private lastWorldPulse = 0;
 
   constructor() {
     super("Game");
@@ -94,7 +95,7 @@ export class GameScene extends Phaser.Scene {
     this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
     this.lastFarmTick = 0; this.lastTowerShot = 0;
     this.chests = []; this.discoveredZones = new Set<string>(); this.workshopCrafts = 0;
-    this.memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 }; this.lastMemoryAction = ""; this.worldMood = 0;
+    this.memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 }; this.lastMemoryAction = ""; this.worldMood = 0; this.lastWorldPulse = 0;
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
