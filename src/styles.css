@@ -149,3 +149,7 @@
 .game-root { position: fixed; inset: 0; }
 .rotate-hint { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 2rem; font-size: 1.25rem; background: oklch(0.2 0.03 230); color: oklch(0.88 0.06 90); }
 @media (orientation: portrait) and (max-width: 900px) { .rotate-hint { display: flex; } }
+/* NEVERENDING fullscreen canvas */
+.game-root { width: 100vw; height: 100vh; }
+.game-root > div { width: 100% !important; height: 100% !important; }
+.game-root canvas { display: block; width: 100% !important; height: 100% !important; }
