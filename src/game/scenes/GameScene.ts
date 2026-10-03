@@ -299,9 +299,22 @@ export class GameScene extends Phaser.Scene {
       const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, x.y, this.player.x, this.player.y) < 105);
       if (c) { this.openChest(c); this.memory.echoes++; this.lastMemoryAction = "Ты забрал находку. Мир это запомнил."; }
     } else if (a.id === "observe") {
+      const e = this.enemies.find(x => Phaser.Math.Distance.Between(x.s.x, x.s.y, this.player.x, this.player.y) < 120);
       this.memory.steps++;
       this.worldMood += 1;
-      this.lastMemoryAction = "Ты наблюдал. Теперь существа могут вести себя иначе.";
+      if (e) {
+        // Наблюдение — отдельный способ взаимодействия: игрок может изменить отношение существа без боя.
+        e.memory += 1;
+        e.pacifiedUntil = this.time.now + 6500;
+        e.s.setVelocity(0, 0);
+        e.s.setTint(0xb9e7ff);
+        this.time.delayedCall(900, () => { if (e.s.active) e.s.clearTint(); });
+        this.lastMemoryAction = e.awakened
+          ? "Ты не стал добивать его. Существо запомнило этот выбор."
+          : "Ты изучил существо. Оно пока не считает тебя угрозой.";
+      } else {
+        this.lastMemoryAction = "Ты наблюдал. Теперь существа могут вести себя иначе.";
+      }
     } else if (a.id === "camp") {
       this.memory.rescues++;
       this.worldMood += 2;
