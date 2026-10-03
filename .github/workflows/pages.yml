@@ -18,7 +18,7 @@ jobs:
       - run: bun run build
       - run: |
           mkdir -p _site
-          if [ -d dist/client ]; then cp -R dist/client/. _site/; else cp -R dist/. _site/; fi
+          if [ -d .output/public ]; then cp -R .output/public/. _site/; elif [ -d dist/client ]; then cp -R dist/client/. _site/; elif [ -d dist ]; then cp -R dist/. _site/; else echo "No static build output"; exit 1; fi
           touch _site/.nojekyll
       - uses: actions/upload-pages-artifact@v4
         with:
