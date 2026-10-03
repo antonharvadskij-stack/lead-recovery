@@ -1,7 +1,7 @@
 /** Базовая конфигурация NEVERENDING. Phaser подключается только на клиенте. */
 export const GAME_WIDTH = 1280;
 export const GAME_HEIGHT = 720;
-export const WORLD_SIZE = 2800;
+export const WORLD_SIZE = 5200;
 
 export function createGameConfig(parent: HTMLElement) {
   return {
