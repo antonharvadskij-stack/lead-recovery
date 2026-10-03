@@ -161,6 +161,17 @@ function drawIsland(){
 function drawTreasures(){for(const t of treasures){if(t.opened)continue;const x=sx(t.x),y=sy(t.y),d0=dist(t,player),p=1+Math.sin(performance.now()/240+t.x)*.06;shadow(t.x,t.y+16,25,8,.3);ctx.save();ctx.translate(x,y);ctx.scale(p,p);ctx.shadowBlur=d0<90?20:7;ctx.shadowColor='#ffd75d';ctx.fillStyle='#704329';ctx.fillRect(-22,-13,44,28);ctx.fillStyle='#b87937';ctx.fillRect(-20,-11,40,8);ctx.fillStyle='#f0c65b';ctx.fillRect(-22,-3,44,7);ctx.fillStyle='#ffe99a';ctx.fillRect(-4,-13,8,28);ctx.fillStyle='#2b2521';ctx.fillRect(-3,-1,6,7);ctx.restore();if(d0<90){ctx.fillStyle='#fff4b0';ctx.font='900 12px system-ui';ctx.textAlign='center';ctx.fillText('ОТКРЫТЬ',x,y-31)}}}
 function drawRareNodes(){for(const n of rareNodes){if(!n.alive)continue;const x=sx(n.x),y=sy(n.y),p=1+Math.sin(performance.now()/190+n.x)*.08;shadow(n.x,n.y+15,22,7,.25);ctx.save();ctx.translate(x,y);ctx.scale(p,p);ctx.shadowBlur=22;ctx.shadowColor='#65f7ff';const gr=ctx.createLinearGradient(-15,-20,15,20);gr.addColorStop(0,'#eaffff');gr.addColorStop(.35,'#64e7e9');gr.addColorStop(1,'#176875');ctx.fillStyle=gr;ctx.beginPath();ctx.moveTo(-21,11);ctx.lineTo(-11,-17);ctx.lineTo(2,-25);ctx.lineTo(22,-7);ctx.lineTo(12,16);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(220,255,255,.8)';ctx.lineWidth=2;ctx.stroke();ctx.restore();if(dist(n,player)<85){ctx.fillStyle='#dfffff';ctx.font='900 11px system-ui';ctx.textAlign='center';ctx.fillText('ДОБЫТЬ',x,y-31)}}}
 function drawRuins(){for(const r of ruins){const x=sx(r.x),y=sy(r.y);shadow(r.x,r.y+20,58,14,.3);ctx.save();ctx.translate(x,y);ctx.fillStyle='#596467';ctx.fillRect(-48,-8,96,14);ctx.fillRect(-38,-45,16,38);ctx.fillRect(20,-35,15,28);ctx.fillStyle='#303d42';ctx.fillRect(-28,-3,16,9);ctx.fillRect(8,-3,20,9);ctx.restore()}}
+
+// Premium world-art layer: atmospheric depth, foliage clusters and landmark accents.
+function drawWorldDetails(){
+ const spots=[[-330,-210,1],[-180,-250,2],[20,-220,1],[190,-205,2],[350,-150,1],[-390,-20,2],[380,0,2],[-330,220,1],[-120,235,2],[160,225,1],[340,190,2]];
+ for(const [x0,y0,k] of spots){const x=sx(x0),y=sy(y0);ctx.save();ctx.translate(x,y);ctx.globalAlpha=.9;
+  for(let j=0;j<k+1;j++){ctx.fillStyle=j%2?'#356f48':'#2d6244';ctx.beginPath();ctx.arc((j-k/2)*13,-j*5,17+j*2,0,Math.PI*2);ctx.fill();}
+  ctx.fillStyle='rgba(190,220,160,.18)';ctx.beginPath();ctx.arc(-5,-12,9,0,Math.PI*2);ctx.fill();ctx.restore();}
+ // water glints around the island
+ ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle='#d8f5ef';ctx.lineWidth=2;
+ for(let n=0;n<12;n++){const a=n*Math.PI*2/12,r=460+(n%3)*22;const x=sx(Math.cos(a)*r),y=sy(Math.sin(a)*r*.55);ctx.beginPath();ctx.moveTo(x-10,y);ctx.lineTo(x+10,y);ctx.stroke();}ctx.restore();
+}
 function drawTree(t){
   shadow(t.x,t.y+30,34*t.s,12*t.s,.34);const x=sx(t.x),y=sy(t.y),s=t.s;ctx.save();ctx.translate(x,y);
   const trunk=ctx.createLinearGradient(-10,0,12,0);trunk.addColorStop(0,'#3c2619');trunk.addColorStop(.45,'#9a6338');trunk.addColorStop(.72,'#684027');trunk.addColorStop(1,'#2f1e16');ctx.fillStyle=trunk;ctx.beginPath();ctx.moveTo(-10*s,38*s);ctx.lineTo(-7*s,-22*s);ctx.lineTo(8*s,-23*s);ctx.lineTo(12*s,38*s);ctx.closePath();ctx.fill();
