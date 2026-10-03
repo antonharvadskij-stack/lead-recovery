@@ -14,6 +14,12 @@ const STATS: Record<EnemyKind, { hp: number; speed: number; dmg: number; range: 
   brute: { hp: 150, speed: 48, dmg: 20, range: 80, cd: 1600, blood: [0xff5a3d, 0x8a2020] },
 };
 
+type WorldTrace = {
+  x: number;
+  y: number;
+  createdAt: number;
+  strength: number;
+};
 interface Enemy {
   s: Sprite;
   shadow: Phaser.GameObjects.Image;
@@ -36,6 +42,8 @@ function ensureAnims(scene: Phaser.Scene, key: string) {
 }
 
 export class GameScene extends Phaser.Scene {
+  private worldTraces: WorldTrace[] = [];
+
   private player!: Sprite;
   private pShadow!: Phaser.GameObjects.Image;
   private enemies: Enemy[] = [];
@@ -235,6 +243,7 @@ export class GameScene extends Phaser.Scene {
     const trace = this.add.circle(x, y, 13, 0x9ad7ff, 0.55).setDepth(6);
     trace.setStrokeStyle(2, 0xe7fbff, 0.8);
     trace.setData("createdAt", now);
+    this.worldTraces.push({ x, y, createdAt: now, strength: 1 });
     this.tweens.add({ targets: trace, alpha: 0.18, scale: 1.7, duration: 900 });
     this.time.delayedCall(6500, () => trace.destroy());
     let influenced = 0;
