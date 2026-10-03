@@ -355,6 +355,7 @@ export class GameScene extends Phaser.Scene {
         this.lastMemoryAction = "Ты наблюдал. Теперь существа могут вести себя иначе.";
       }
     } else if (a.id === "camp") {
+      this.leaveTrace();
       this.memory.rescues++;
       this.worldMood += 2;
       this.lastMemoryAction = "Ты оставил след у костра. Это станет частью истории.";
@@ -590,6 +591,35 @@ export class GameScene extends Phaser.Scene {
       this.player.anims.timeScale = this.attacking ? 1 : len > 0.05 ? 1 : 0.0001;
       if (!this.attacking && len <= 0.05) this.player.setFrame(0);
     }
+    // Оставленные следы продолжают жить после ухода игрока.
+    for (let i = this.worldTraces.length - 1; i >= 0; i--) {
+      const tr = this.worldTraces[i];
+      const age = now - tr.createdAt;
+      tr.strength = Math.max(0, 1 - age / 6500);
+      if (tr.strength <= 0) {
+        this.worldTraces.splice(i, 1);
+        continue;
+      }
+      for (const e of this.enemies) {
+        if (!e.s.active || e.hp < e.maxHp) continue;
+        const d = Phaser.Math.Distance.Between(e.s.x, e.s.y, tr.x, tr.y);
+        if (d < 190 && age > 450) {
+          e.memory += delta * 0.00012 * tr.strength;
+          if (d > 32) {
+            e.s.setVelocity(
+              ((tr.x - e.s.x) / Math.max(d, 1)) * 22 * tr.strength,
+              ((tr.y - e.s.y) / Math.max(d, 1)) * 22 * tr.strength
+            );
+            e.s.setFlipX(tr.x < e.s.x);
+          } else {
+            e.s.setVelocity(0, 0);
+            e.pacifiedUntil = Math.max(e.pacifiedUntil, now + 1000);
+            e.s.setData("traceResponse", "found");
+          }
+        }
+      }
+    }
+
     this.clamp(this.player);
     this.player.setDepth(this.player.y);
     this.pShadow.setPosition(this.player.x, this.player.y).setDepth(this.player.y - 1);
