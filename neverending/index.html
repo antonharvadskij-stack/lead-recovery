@@ -94,7 +94,7 @@ let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
 function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);c.width=W*DPR;c.height=H*DPR;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0)}
 addEventListener('resize',resize);resize();
 
-const state={wood:30,stone:10,coins:100,hp:100,en:100,hunger:100,level:1,day:1,kills:0,trees:0,built:0,farms:0,workshops:0,walls:0,weapon:1,armor:0,food:0,zone:1};
+const state={wood:30,stone:10,coins:100,hp:100,en:100,hunger:100,level:1,xp:0,day:1,kills:0,trees:0,built:0,farms:0,workshops:0,walls:0,weapon:1,armor:0,food:0,zone:1};
 function saveGame(){try{localStorage.setItem("last_island_save",JSON.stringify({state,player:{x:player.x,y:player.y}}))}catch(e){}}
 const player={x:0,y:0,r:18,dir:0,attack:0,hit:0};
 function loadGame(){try{const z=JSON.parse(localStorage.getItem("last_island_save")||"null");if(z?.state)Object.assign(state,z.state);if(z?.player){player.x=z.player.x;player.y=z.player.y}}catch(e){}}
@@ -118,7 +118,7 @@ function onIsland(x,y){const dx=x/island.rx,dy=y/island.ry;return dx*dx+dy*dy<.9
 function spawn(){
   for(let i=0;i<95;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<180);trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:i})}
   for(let i=0;i<55;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<230);rocks.push({x,y,s:rnd(.75,1.25),hp:2})}
-  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);enemies.push({x,y,r:20,hp:i%4===0?7:3,max:i%4===0?7:3,spd:i%4===0?rnd(14,22):rnd(20,32),phase:rnd(0,6),alive:true,type:i%4===0?'brute':'raider',tier:1})}
+  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);const elite=i%4===0,champ=i%9===0;const hp=champ?12:elite?7:3;enemies.push({x,y,r:champ?23:20,hp,max:hp,spd:champ?rnd(18,25):elite?rnd(14,22):rnd(20,32),phase:rnd(0,6),alive:true,type:champ?'champion':elite?'brute':'raider',tier:champ?3:elite?2:1})}
   buildings.push({x:-170,y:70,type:'hut',built:true},{x:260,y:-160,type:'tower',built:true},{x:50,y:210,type:'camp',built:true})
 }
 spawn();
@@ -301,7 +301,7 @@ window.onNativeRewarded=function(){
 function useFood(){if(state.food>0){state.food--;state.hunger=Math.min(100,state.hunger+35);state.hp=Math.min(state.maxHp,state.hp+5);state.en=Math.min(state.maxEn,state.en+15);toast('🥩 Еда использована · +5 ❤️');saveGame()}else toast('Нет запасов еды')}
 function buyItem(kind){const d={sword:[120,'weapon',1],armor:[150,'armor',1],food:[15,'food',1]}[kind];if(state.coins<d[0]){toast('Нужно '+d[0]+' 🪙');return}state.coins-=d[0];state[d[1]]+=d[2];toast('Куплено');saveGame();updateUI()}
 function doLoot(){
-  const e=near(loot,95);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · без лечения");saveGame();return}
+  const e=near(loot,95);if(e){const reward=e.rare?100:25;state.coins+=reward;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+'+reward+' 🪙','#ffe38a');toast((e.rare?'💠 Редкий лут · ':'')+'+'+reward+' монет · +еда · без лечения');saveGame();return}
   const before=(state.treasures||0);interactWorld();if((state.treasures||0)>before)return;
   if(state.food>0){useFood();return}if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
   toast("Нужен сундук, редкий ресурс или еда");
@@ -312,7 +312,7 @@ function doAttack(){
     if(e.alive&&dist(e,player)<95){
       e.hp-=state.damage+state.weapon*3;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
       burst(e.x,e.y,'#ffe07a',9);floatText(e.x,e.y-28,'УДАР','#fff1a4');cameraShake=.22;
-      if(e.hp<=0){e.alive=false;state.kills++;const reward=e.type==='brute'?35:15;state.coins+=reward;state.level=Math.max(1,1+Math.floor(state.kills/4));state.en=Math.min(state.maxEn,state.en+6);loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+'+reward+' 🪙','#ffe27d');if(e.type==='brute')state.stone+=5;toast('⬆️ Уровень '+state.level+' · +'+reward+' монет')}
+      if(e.hp<=0){e.alive=false;state.kills++;const reward=e.type==='champion'?80:e.type==='brute'?35:15;state.coins+=reward;state.xp=(state.xp||0)+(e.type==='champion'?3:e.type==='brute'?2:1);const newLevel=Math.max(1,1+Math.floor(state.xp/8));if(newLevel>state.level){state.level=newLevel;toast('⭐ Новый уровень '+state.level)}state.en=Math.min(state.maxEn,state.en+6);loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+'+reward+' 🪙','#ffe27d');if(e.type==='brute')state.stone+=5;if(e.type==='champion'){state.stone+=12;state.rare=(state.rare||0)+1;loot.push({x:e.x,y:e.y,rare:true});floatText(e.x,e.y-58,'💠 РЕДКИЙ ЛУТ','#8ffaff')}toast('+'+reward+' 🪙 · XP '+state.xp)}
     }
   }
   if(!hit)toast('Враг слишком далеко');
@@ -340,6 +340,7 @@ function applyBuildingProduction(dt){
 function doBuild(type='hut'){
  const types={hut:{name:'🏠 Убежище',wood:10,stone:5},tower:{name:'🗼 Башня',wood:18,stone:12},camp:{name:'🔥 Костровище',wood:14,stone:8},farm:{name:'🌾 Ферма',wood:22,stone:10},workshop:{name:'🔨 Мастерская',wood:28,stone:18},wall:{name:'🧱 Стена',wood:12,stone:14}};
  const b=types[type]||types.hut;
+ const req={hut:1,camp:1,farm:1,workshop:2,tower:2,wall:2}[type]||1;if(state.level<req){toast('🔒 Требуется уровень '+req);return}
  if(state.wood<b.wood||state.stone<b.stone){toast('Нужно '+b.wood+' 🪵 и '+b.stone+' 🪨');return}
  const a=player.dir,d=105,bx=player.x+Math.cos(a)*d,by=player.y+Math.sin(a)*d;
  if(!onIsland(bx,by)){toast('Нельзя строить в воде');return}
@@ -349,7 +350,7 @@ function doBuild(type='hut'){
  document.getElementById('buildPanel').style.display='none';
 }
 
-state.treasures=state.treasures||0;state.rare=state.rare||0;state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;if(state.hp<=0)state.hp=state.maxHp;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
+state.treasures=state.treasures||0;state.rare=state.rare||0;state.xp=state.xp||0;state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;if(state.hp<=0)state.hp=state.maxHp;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
 function openUpgrades(){hidePanel('panel');const el=document.getElementById('upgradePanel');if(el){el.style.display='block';el.style.zIndex='100001';el.style.pointerEvents='auto';}}
 function buyUpgrade(kind){
  const data={hp:[60,'maxHp',10],en:[70,'maxEn',15],dmg:[90,'damage',1],bag:[80,'gather',1]}[kind];
