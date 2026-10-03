@@ -45,7 +45,7 @@ export class UIScene extends Phaser.Scene {
     this.memoryBox.setData("stats",stats); this.memoryBox.setData("last",last);
 
     // Боевые действия находятся в отдельной нижней панели: кнопки никогда не перекрываются.
-    const combatY = H - 92;
+    const combatY = Math.max(110, H - 150);
     this.contextBtn = this.add.container(W - 285, combatY).setDepth(250);
     const cb=this.add.rectangle(0,0,210,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive();
     const ct2=this.add.text(0,-7,"",{...FONT,fontFamily:"sans-serif",fontSize:"17px",align:"center"}).setOrigin(.5);
@@ -78,12 +78,12 @@ export class UIScene extends Phaser.Scene {
     this.overBox=this.add.container(0,0,[bg,title2,stats2,btn,btnT]).setVisible(false).setDepth(400); this.overBox.setData("stats",stats2);
     // Пересчитываем боевую панель при повороте/изменении размера экрана.
     this.scale.on("resize", (size: Phaser.Structs.Size) => {
-      const w = size.width, h = size.height, y = h - 92;
-      this.contextBtn.setPosition(Math.max(120, w - 285), y);
+      const w = size.width, h = size.height, y = Math.max(110, h - 150);
+      this.contextBtn.setPosition(Math.max(125, w - 285), y);
       atk.setPosition(Math.max(82, w - 82), y);
       if (w < 560) {
-        this.contextBtn.setPosition(w - 125, h - 155);
-        atk.setPosition(w - 70, h - 70);
+        this.contextBtn.setPosition(Math.max(120, w - 125), Math.max(105, h - 220));
+        atk.setPosition(Math.max(70, w - 70), Math.max(95, h - 115));
       }
     });
     this.events.once("shutdown",()=>{});
