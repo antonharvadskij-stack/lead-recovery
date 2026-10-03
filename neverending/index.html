@@ -224,6 +224,11 @@ function update(dt){
   }else state.en=Math.min(state.maxEn,state.en+dt*3.8);
   state.hunger=Math.max(0,state.hunger-dt*.022);
   if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
+  // Health recovery: food keeps the survivor alive, while built shelters/campfires provide stronger regeneration.
+  let hpRegen=0;
+  if(state.hunger>65)hpRegen+=0.18;
+  for(const b of buildings){if(dist(b,player)<125){if(b.type==='camp')hpRegen+=1.15;if(b.type==='hut')hpRegen+=0.45;if(b.type==='farm')hpRegen+=0.12}}
+  if(state.hp<state.maxHp&&hpRegen>0)state.hp=Math.min(state.maxHp,state.hp+hpRegen*dt);
   player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
   // Camera and every world object use the same world coordinates.
   // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.
@@ -268,8 +273,8 @@ function doCollect(){
   else toast('Подойдите ближе к ресурсу');
 }
 function doLoot(){
-  const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · +энергия");saveGame();return}
-  if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);toast("🥩 Запас еды использован");saveGame();return}
+  const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);state.hp=Math.min(state.maxHp,state.hp+12);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · +12 ❤️");saveGame();return}
+  if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
   toast("Нужен сундук или 5 монет на еду");
 }
 function doAttack(){
@@ -286,7 +291,7 @@ function doAttack(){
 function interactWorld(){
  let nearest=null,nd=95;for(const t of treasures){if(!t.opened){const d=dist(t,player);if(d<nd){nearest={kind:'treasure',obj:t};nd=d}}}for(const n of rareNodes){if(n.alive){const d=dist(n,player);if(d<nd){nearest={kind:'rare',obj:n};nd=d}}}
  if(!nearest){toast('Ничего интересного рядом');return}
- if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Найден редкий тайник · +'+reward+' монет');saveGame();return}
+ if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.hp=Math.min(state.maxHp,state.hp+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Тайник · +'+reward+' монет · +15 ❤️');saveGame();return}
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
 }
 function doBuild(type='hut'){
@@ -301,7 +306,7 @@ function doBuild(type='hut'){
  document.getElementById('buildPanel').style.display='none';
 }
 
-state.treasures=state.treasures||0;state.rare=state.rare||0;state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
+state.treasures=state.treasures||0;state.rare=state.rare||0;state.maxHp=state.maxHp||100;state.maxEn=state.maxEn||100;state.damage=state.damage||1;state.gather=state.gather||1;if(state.hp<=0)state.hp=state.maxHp;state.hp=Math.min(state.hp,state.maxHp);state.en=Math.min(state.en,state.maxEn);
 function openUpgrades(){document.getElementById('upgradePanel').style.display='block';}
 function buyUpgrade(kind){
  const data={hp:[60,'maxHp',10],en:[70,'maxEn',15],dmg:[90,'damage',1],bag:[80,'gather',1]}[kind];
