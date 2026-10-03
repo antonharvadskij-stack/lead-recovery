@@ -89,8 +89,17 @@ export class UIScene extends Phaser.Scene {
     const g = this.hpBar.clear();
     g.fillStyle(0x000000, 0.55).fillRoundedRect(22, 56, 264, 22, 6);
     g.fillStyle(h.hp > 30 ? 0xd94a3a : 0xff2a2a).fillRoundedRect(25, 59, 258 * (h.hp / h.maxHp), 16, 5);
-    const q = h.quest ? ` · Задание: ${h.quest.progress}/${h.quest.target}` : "";
-    this.info.setText(`HP ${h.hp}   ·   Голод ${Math.round(h.hunger ?? 100)}%   ·   День ${h.day ?? 1}\nДерево ${h.wood ?? 0}  Камень ${h.stone ?? 0}  Еда ${h.food ?? 0}  Монеты ${h.coins ?? 0}   ·   Лагерь ${h.campLevel ?? 1}  Оружие ${h.weaponLevel ?? 1}${q}`);
+    this.info.setText(`HP ${Math.round(h.hp)}   ·   День ${h.day ?? 1}`);
+    const m = this.registry.get("memory") as Memory | undefined;
+    if (m) {
+      const label = this.contextBtn.getData("label") as Phaser.GameObjects.Text;
+      const hint = this.contextBtn.getData("hint") as Phaser.GameObjects.Text;
+      label.setText(m.context.label); hint.setText(m.context.hint);
+      const stats = this.memoryBox.getData("stats") as Phaser.GameObjects.Text;
+      const last = this.memoryBox.getData("last") as Phaser.GameObjects.Text;
+      stats.setText(`Следы: ${Math.floor(m.steps)}\nСвязи: ${m.rescues}\nШрамы мира: ${m.scars}\nЭхо: ${m.echoes}\nСостояние мира: ${m.mood > 0 ? "откликается" : m.mood < 0 ? "насторожено" : "не определено"}`);
+      last.setText(m.last || "Пока мир ничего не запомнил.");
+    }
     if (h.over && !this.overBox.visible) {
       (this.overBox.getData("stats") as Phaser.GameObjects.Text).setText(`Волна ${h.wave} · Убито врагов: ${h.kills}`);
       this.overBox.setVisible(true);
