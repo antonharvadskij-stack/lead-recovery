@@ -1,7 +1,7 @@
 import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
-type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; sanity?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number } };
+type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean; wood?: number; stone?: number; food?: number; coins?: number; hunger?: number; sanity?: number; day?: number; campLevel?: number; weaponLevel?: number; quest?: { type: string; target: number; progress: number }; context?: { label: string; hint: string } };
 const FONT = { fontFamily: "Georgia, serif", color: "#efe2b8", stroke: "#0a0f18", strokeThickness: 4 };
 
 /** HUD, сенсорный джойстик и кнопка атаки. */
@@ -31,8 +31,8 @@ export class UIScene extends Phaser.Scene {
     const combatY = Math.max(110, H - 150);
     this.contextBtn = this.add.container(W - 285, combatY).setSize(210, 62).setDepth(250).setInteractive({ useHandCursor: false });
     const cb=this.add.rectangle(0,0,210,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive({ useHandCursor: false });
-    const ct2=this.add.text(0,-7,"",{...FONT,fontFamily:"sans-serif",fontSize:"17px",align:"center"}).setOrigin(.5);
-    const hint=this.add.text(0,17,"",{fontFamily:"sans-serif",fontSize:"11px",color:"#a9c3c7"}).setOrigin(.5);
+    const ct2=this.add.text(0,-7,"ДЕЙСТВИЕ",{...FONT,fontFamily:"sans-serif",fontSize:"17px",align:"center"}).setOrigin(.5);
+    const hint=this.add.text(0,17,"Выберите действие",{fontFamily:"sans-serif",fontSize:"11px",color:"#a9c3c7"}).setOrigin(.5);
     this.contextBtn.add([cb,ct2,hint]); this.contextBtn.setData("button",cb); this.contextBtn.setData("label",ct2); this.contextBtn.setData("hint",hint);
     const triggerContext = () => { const i = this.input_(); i.context = true; };
     this.contextBtn.on("pointerdown", triggerContext);
@@ -91,6 +91,9 @@ export class UIScene extends Phaser.Scene {
     g.fillStyle(0x000000, 0.55).fillRoundedRect(22, 56, 264, 22, 6);
     g.fillStyle(h.hp > 30 ? 0xd94a3a : 0xff2a2a).fillRoundedRect(25, 59, 258 * (h.hp / h.maxHp), 16, 5);
     this.info.setText(`HP ${Math.round(h.hp)}   ·   Голод ${Math.round(h.hunger ?? 100)}   ·   Рассудок ${Math.round(h.sanity ?? 100)}   ·   День ${h.day ?? 1}`);
+    const label = this.contextBtn.getData("label") as Phaser.GameObjects.Text;
+    const hint = this.contextBtn.getData("hint") as Phaser.GameObjects.Text;
+    if (h.context) { label.setText(h.context.label); hint.setText(h.context.hint); }
     if (h.over && !this.overBox.visible) {
       (this.overBox.getData("stats") as Phaser.GameObjects.Text).setText(`Волна ${h.wave} · Убито врагов: ${h.kills}`);
       this.overBox.setVisible(true);
