@@ -59,28 +59,24 @@
   --color-sidebar-accent-foreground: var(--sidebar-accent-foreground);
   --color-sidebar-border: var(--sidebar-border);
   --color-sidebar-ring: var(--sidebar-ring);
-  --color-surface: var(--surface);
-  --shadow-soft: 0 6px 16px -6px color-mix(in oklab, var(--primary) 45%, transparent);
-  --shadow-card: 0 12px 40px -18px oklch(0.25 0.05 265 / 0.35);
 }
 
 :root {
-  --radius: 0.75rem;
+  --radius: 0.625rem;
   --background: oklch(1 0 0);
-  --surface: oklch(0.982 0.003 264);
-  --foreground: oklch(0.22 0.035 265);
+  --foreground: oklch(0.129 0.042 264.695);
   --card: oklch(1 0 0);
-  --card-foreground: oklch(0.22 0.035 265);
+  --card-foreground: oklch(0.129 0.042 264.695);
   --popover: oklch(1 0 0);
-  --popover-foreground: oklch(0.22 0.035 265);
-  --primary: oklch(0.548 0.235 279);
-  --primary-foreground: oklch(0.99 0.002 248);
+  --popover-foreground: oklch(0.129 0.042 264.695);
+  --primary: oklch(0.208 0.042 265.755);
+  --primary-foreground: oklch(0.984 0.003 247.858);
   --secondary: oklch(0.968 0.007 247.896);
-  --secondary-foreground: oklch(0.22 0.035 265);
-  --muted: oklch(0.955 0.008 264);
-  --muted-foreground: oklch(0.52 0.03 262);
-  --accent: oklch(0.955 0.012 279);
-  --accent-foreground: oklch(0.548 0.235 279);
+  --secondary-foreground: oklch(0.208 0.042 265.755);
+  --muted: oklch(0.968 0.007 247.896);
+  --muted-foreground: oklch(0.554 0.046 257.417);
+  --accent: oklch(0.968 0.007 247.896);
+  --accent-foreground: oklch(0.208 0.042 265.755);
   --destructive: oklch(0.577 0.245 27.325);
   --destructive-foreground: oklch(0.984 0.003 247.858);
   --border: oklch(0.929 0.013 255.508);
@@ -102,7 +98,6 @@
 }
 
 .dark {
-  --surface: oklch(0.18 0.04 265);
   --background: oklch(0.129 0.042 264.695);
   --foreground: oklch(0.984 0.003 247.858);
   --card: oklch(0.208 0.042 265.755);
@@ -148,14 +143,9 @@
   }
 }
 
-@theme {
-  --font-sans:
-    "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, "Segoe UI", sans-serif;
-}
-
 @layer base {
-  body {
-    font-family: var(--font-sans);
-    -webkit-font-smoothing: antialiased;
-  }
+  html, body { height: 100%; margin: 0; overflow: hidden; background: oklch(0.2 0.03 230); touch-action: none; overscroll-behavior: none; }
 }
+.game-root { position: fixed; inset: 0; }
+.rotate-hint { display: none; position: fixed; inset: 0; align-items: center; justify-content: center; text-align: center; padding: 2rem; font-size: 1.25rem; background: oklch(0.2 0.03 230); color: oklch(0.88 0.06 90); }
+@media (orientation: portrait) and (max-width: 900px) { .rotate-hint { display: flex; } }
