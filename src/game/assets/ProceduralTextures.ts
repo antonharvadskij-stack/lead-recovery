@@ -282,6 +282,7 @@ function drawCrawler(c: Ctx, body: string, eyes: string, level: number, t: numbe
     });
   };
   const dark = shade(body, 0.6);
+  drawLevelBadges(c, level, -18, -48, eyes);
   leg(-14 + lunge * 0.3, Math.PI, dark);
   leg(12 + lunge, 0, dark);
   c.save();
@@ -380,6 +381,15 @@ const ENEMY_PALETTES: Record<EnemyKind, { skin: string; cloth: string; eyes: str
     { skin: "#a8443c", cloth: "#2a1e1e", eyes: "#ffd23d" },
   ],
 };
+
+function drawLevelBadges(c: Ctx, level: number, x: number, y: number, color: string) {
+  c.save();
+  c.fillStyle = color; c.globalAlpha = 0.9;
+  for (let i=0;i<level;i++) {
+    c.beginPath(); c.moveTo(x + i*8, y); c.lineTo(x+4+i*8,y-6); c.lineTo(x+8+i*8,y); c.lineTo(x+4+i*8,y+4); c.closePath(); c.fill();
+  }
+  c.restore();
+}
 
 export function generatePlaceholderTextures(scene: Phaser.Scene) {
   buildCharacter(scene, K.player, 1.2, (c, t, a) =>
