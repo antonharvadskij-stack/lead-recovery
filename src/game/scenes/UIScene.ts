@@ -1,4 +1,4 @@
-import Phaser from "phaser";
+import * as Phaser from "phaser";
 import { TEXTURE_KEYS as K } from "../assets/manifest";
 
 type Hud = { hp: number; maxHp: number; wave: number; kills: number; alive: number; over: boolean };
