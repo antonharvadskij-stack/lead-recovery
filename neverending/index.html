@@ -75,7 +75,7 @@ window.addEventListener('unhandledrejection',function(e){
     </div>
   </div>
 </div>
-<div id="buildPanel"><h2>🏗️ Строительство</h2><p style="opacity:.72">Выберите, что построить. Постройки дают постоянные бонусы и открывают новые возможности.</p><div class="buildGrid"><button class="buildChoice" id="bHut">🏠 Убежище<small>10 🪵 · 5 🪨 · лечит рядом</small></button><button class="buildChoice" id="bTower">🗼 Башня<small>18 🪵 · 12 🪨 · помогает против врагов</small></button><button class="buildChoice" id="bCamp">🔥 Костровище<small>14 🪵 · 8 🪨 · восстанавливает энергию</small></button><button class="buildChoice" id="bFarm">🌾 Ферма<small>22 🪵 · 10 🪨 · еда со временем</small></button><button class="buildChoice" id="bWorkshop">🔨 Мастерская<small>28 🪵 · 18 🪨 · скидка на улучшения</small></button><button class="buildChoice" id="bWall">🧱 Стена<small>12 🪵 · 14 🪨 · защита лагеря</small></button></div><button class="panelClose" id="buildClose">Закрыть</button></div><div class="panel" id="panel">
+<div id="shopPanel" style="display:none"><h2>🛒 Магазин</h2><p style="opacity:.72">Покупайте снаряжение и запас еды.</p><div class="buildGrid"><button class="buildChoice" id="buySword">⚔️ Стальное лезвие<small>120 🪙 · +3 урона</small></button><button class="buildChoice" id="buyArmor">🛡️ Кожаная броня<small>150 🪙 · -20% урона</small></button><button class="buildChoice" id="buyFood">🥩 Запас еды<small>15 🪙 · +1 порция</small></button></div><button class="panelClose" id="shopClose">Закрыть</button></div><div id="buildPanel"><h2>🏗️ Строительство</h2><p style="opacity:.72">Выберите, что построить. Постройки дают постоянные бонусы и открывают новые возможности.</p><div class="buildGrid"><button class="buildChoice" id="bHut">🏠 Убежище<small>10 🪵 · 5 🪨 · лечит рядом</small></button><button class="buildChoice" id="bTower">🗼 Башня<small>18 🪵 · 12 🪨 · помогает против врагов</small></button><button class="buildChoice" id="bCamp">🔥 Костровище<small>14 🪵 · 8 🪨 · восстанавливает энергию</small></button><button class="buildChoice" id="bFarm">🌾 Ферма<small>22 🪵 · 10 🪨 · еда со временем</small></button><button class="buildChoice" id="bWorkshop">🔨 Мастерская<small>28 🪵 · 18 🪨 · скидка на улучшения</small></button><button class="buildChoice" id="bWall">🧱 Стена<small>12 🪵 · 14 🪨 · защита лагеря</small></button></div><button class="panelClose" id="buildClose">Закрыть</button></div><div class="panel" id="panel">
   <h2>Последний остров</h2>
   <p style="opacity:.75">Собирайте ресурсы, стройте убежище, отбивайтесь от врагов и открывайте новые зоны.</p>
   <div class="row"><span>🪵 Дерево</span><b id="pWood">30</b></div>
@@ -91,7 +91,7 @@ let W=innerWidth,H=innerHeight,DPR=Math.min(devicePixelRatio||1,2);
 function resize(){W=innerWidth;H=innerHeight;DPR=Math.min(devicePixelRatio||1,2);c.width=W*DPR;c.height=H*DPR;c.style.width=W+'px';c.style.height=H+'px';ctx.setTransform(DPR,0,0,DPR,0,0)}
 addEventListener('resize',resize);resize();
 
-const state={wood:30,stone:10,coins:100,hp:100,en:100,hunger:100,level:1,day:1,kills:0,trees:0,built:0,farms:0,workshops:0,walls:0};
+const state={wood:30,stone:10,coins:100,hp:100,en:100,hunger:100,level:1,day:1,kills:0,trees:0,built:0,farms:0,workshops:0,walls:0,weapon:1,armor:0,food:0,zone:1};
 function saveGame(){try{localStorage.setItem("last_island_save",JSON.stringify({state,player:{x:player.x,y:player.y}}))}catch(e){}}
 const player={x:0,y:0,r:18,dir:0,attack:0,hit:0};
 function loadGame(){try{const z=JSON.parse(localStorage.getItem("last_island_save")||"null");if(z?.state)Object.assign(state,z.state);if(z?.player){player.x=z.player.x;player.y=z.player.y}}catch(e){}}
@@ -204,7 +204,7 @@ function updateMission(){
   else {el.textContent=state.day>=2?"🏆 Остров освоен — продолжайте развиваться":"🌅 Доживите до 2 дня";}
 }
 function updateUI(){
-  for(const [id,v] of [['wood',state.wood],['stone',state.stone],['coins',state.coins],['hpText',Math.round(state.hp)],['enText',Math.round(state.en)],['huText',Math.round(state.hunger)],['level',state.level],['day',state.day],['kills',state.kills]])document.getElementById(id).textContent=v;
+  for(const [id,v] of [['wood',state.wood],['stone',state.stone],['coins',state.coins],['food',state.food],['hpText',Math.round(state.hp)],['enText',Math.round(state.en)],['huText',Math.round(state.hunger)],['level',state.level],['day',state.day],['kills',state.kills]])document.getElementById(id).textContent=v;
   document.getElementById('hpFill').style.width=state.hp+'%';document.getElementById('enFill').style.width=state.en+'%';document.getElementById('huFill').style.width=state.hunger+'%';
   document.getElementById('pWood').textContent=state.wood;document.getElementById('pStone').textContent=state.stone;document.getElementById('pCoins').textContent=state.coins;document.getElementById('pTrees').textContent=state.trees;updateMission();
 }
@@ -234,7 +234,7 @@ function update(dt){
   // Camera and every world object use the same world coordinates.
   // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.
   cam.x=player.x;cam.y=player.y;
-  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=e.type==='brute'?6:3;state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.18;if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';document.getElementById('gameOverText').textContent='Вы погибли на '+state.day+' дне · побед: '+state.kills+' · монет: '+state.coins;saveGame()}}}}
+  for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=Math.max(1,Math.round((e.type==='brute'?6:3)*(1-state.armor*.2)));state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.18;if(state.hp<=0){gameOver=true;joystick.active=false;state.hp=0;document.getElementById('gameOver').style.display='block';document.getElementById('gameOverText').textContent='Вы погибли на '+state.day+' дне · побед: '+state.kills+' · монет: '+state.coins;saveGame()}}}}
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
     let alive=enemies.filter(e=>e.alive).length;
@@ -273,7 +273,7 @@ function doCollect(){
   else if(r){r.hp--;state.stone+=3*state.gather;burst(r.x,r.y,'#c5d0d4',7);floatText(r.x,r.y-32,'+3 🪨','#dce8ea');if(r.hp<=0){r.x=99999;respawnResource("rock")}toast("+3 камня");saveGame()}
   else toast('Подойдите ближе к ресурсу');
 }
-function doLoot(){
+function useFood(){if(state.food>0){state.food--;state.hunger=Math.min(100,state.hunger+35);state.hp=Math.min(state.maxHp,state.hp+5);state.en=Math.min(state.maxEn,state.en+15);toast('🥩 Еда использована · +5 ❤️');saveGame()}else toast('Нет запасов еды')}\nfunction buyItem(kind){const d={sword:[120,'weapon',1],armor:[150,'armor',1],food:[15,'food',1]}[kind];if(state.coins<d[0]){toast('Нужно '+d[0]+' 🪙');return}state.coins-=d[0];state[d[1]]+=d[2];toast('Куплено');saveGame();updateUI()}\nfunction doLoot(){
   const e=near(loot,75);if(e){state.coins+=25;state.hunger=Math.min(100,state.hunger+22);state.en=Math.min(100,state.en+18);loot.splice(loot.indexOf(e),1);burst(e.x,e.y,'#ffe06d',12);floatText(e.x,e.y-28,'+25 🪙','#ffe38a');toast("+25 монет · +еда · без лечения");saveGame();return}
   if(state.hunger<96&&state.coins>=5){state.coins-=5;state.hunger=Math.min(100,state.hunger+28);state.en=Math.min(100,state.en+12);state.hp=Math.min(state.maxHp,state.hp+8);toast("🥩 Еда использована · +8 ❤️");saveGame();return}
   toast("Нужен сундук или 5 монет на еду");
@@ -282,9 +282,9 @@ function doAttack(){
   if(attackCooldown>0){toast('⚔️ Оружие перезаряжается');return}player.attack=.32;attackCooldown=.42;let hit=false;
   for(const e of enemies){
     if(e.alive&&dist(e,player)<95){
-      e.hp-=state.damage;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
+      e.hp-=state.damage+state.weapon*3;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
       burst(e.x,e.y,'#ffe07a',9);floatText(e.x,e.y-28,'УДАР','#fff1a4');cameraShake=.22;
-      if(e.hp<=0){e.alive=false;state.kills++;state.coins+=15;loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+15 🪙','#ffe27d');if(state.kills%3===0){state.level++;toast('⬆️ Уровень '+state.level)}else toast("+15 монет")}
+      if(e.hp<=0){e.alive=false;state.kills++;state.coins+=15;state.en=Math.min(state.maxEn,state.en+6);loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+15 🪙','#ffe27d');if(state.kills%3===0){state.level++;toast('⬆️ Уровень '+state.level)}else toast("+15 монет")}
     }
   }
   if(!hit)toast('Враг слишком далеко');
@@ -292,7 +292,7 @@ function doAttack(){
 function interactWorld(){
  let nearest=null,nd=95;for(const t of treasures){if(!t.opened){const d=dist(t,player);if(d<nd){nearest={kind:'treasure',obj:t};nd=d}}}for(const n of rareNodes){if(n.alive){const d=dist(n,player);if(d<nd){nearest={kind:'rare',obj:n};nd=d}}}
  if(!nearest){toast('Ничего интересного рядом');return}
- if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.hp=Math.min(state.maxHp,state.hp+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Тайник · +'+reward+' монет · +15 ❤️');saveGame();return}
+ if(nearest.kind==='treasure'){const t=nearest.obj;t.opened=true;const reward=80+Math.floor(Math.random()*71);state.coins+=reward;state.stone+=8;state.en=Math.min(state.maxEn,state.en+15);state.treasures=(state.treasures||0)+1;burst(t.x,t.y,'#ffe16b',25);floatText(t.x,t.y-35,'+'+reward+' 🪙','#ffe27d');toast('💎 Тайник · +'+reward+' монет');saveGame();return}
  const n=nearest.obj;n.hp--;state.stone+=6;state.coins+=8;burst(n.x,n.y,'#8ffaff',12);if(n.hp<=0){n.alive=false;state.rare=(state.rare||0)+1;toast('💠 Редкий кристалл добыт · +8 монет')}else toast('+6 камня');saveGame();
 }
 function drawBuildStructure(b){
@@ -328,7 +328,7 @@ function buyUpgrade(kind){
  if(state.coins<data[0]){toast('Нужно '+data[0]+' монет');return}
  state.coins-=data[0];state[data[1]]+=data[2];if(kind==='hp')state.hp+=data[2];if(kind==='en')state.en+=data[2];toast('⬆️ Улучшение куплено');saveGame();updateUI();
 }
-document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').onclick=openUpgrades;if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('upgradePanel')};if(q('buildClose'))q('buildClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('buildPanel')};function showPanel(id){const el=q(id);if(el){el.style.display='block';el.style.zIndex='9000';}}function hidePanel(id){const el=q(id);if(el)el.style.display='none'}if(q('menu')){q('menu').onclick=e=>{e.preventDefault();e.stopPropagation();showPanel('panel')}}if(q('closePanel')){q('closePanel').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel')}}if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
+document.addEventListener('DOMContentLoaded',()=>{const q=id=>document.getElementById(id);if(q('openUpgrades'))q('openUpgrades').onclick=openUpgrades;if(q('upgHp'))q('upgHp').onclick=()=>buyUpgrade('hp');if(q('upgEn'))q('upgEn').onclick=()=>buyUpgrade('en');if(q('upgDmg'))q('upgDmg').onclick=()=>buyUpgrade('dmg');if(q('upgBag'))q('upgBag').onclick=()=>buyUpgrade('bag');if(q('upgClose'))q('upgClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('upgradePanel')};if(q('shopClose'))q('shopClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('shopPanel')};if(q('buySword'))q('buySword').onclick=()=>buyItem('sword');if(q('buyArmor'))q('buyArmor').onclick=()=>buyItem('armor');if(q('buyFood'))q('buyFood').onclick=()=>buyItem('food');if(q('shop'))q('shop').onclick=()=>showPanel('shopPanel');if(q('food'))q('food').onclick=useFood;if(q('buildClose'))q('buildClose').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('buildPanel')};function showPanel(id){const el=q(id);if(el){el.style.display='block';el.style.zIndex='9000';}}function hidePanel(id){const el=q(id);if(el)el.style.display='none'}if(q('menu')){q('menu').onclick=e=>{e.preventDefault();e.stopPropagation();showPanel('panel')}}if(q('closePanel')){q('closePanel').onclick=e=>{e.preventDefault();e.stopPropagation();hidePanel('panel')}}if(q('reset'))q('reset').onclick=()=>{localStorage.removeItem('last_island_save');location.reload()};['Hut','Tower','Camp','Farm','Workshop','Wall'].forEach(n=>{const el=q('b'+n);if(el)el.onclick=()=>doBuild(n.toLowerCase())});});
 document.getElementById("restart").onclick=()=>location.reload();
 const actionMap={collect:doCollect,loot:doLoot,attack:doAttack,build:()=>document.getElementById('buildPanel').style.display='block'};
 function bindAction(id,fn){
