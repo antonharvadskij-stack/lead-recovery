@@ -153,6 +153,16 @@ function drawWater(){
  ctx.save();ctx.globalAlpha=.22;ctx.strokeStyle='#b9edf0';ctx.lineWidth=2;
  for(let row=0;row<12;row++){const yy=(row/12)*H;ctx.beginPath();for(let x=-30;x<W+40;x+=55){const y=yy+Math.sin(x*.025+performance.now()/1700+row)*5; if(x===-30)ctx.moveTo(x,y);else ctx.quadraticCurveTo(x+14,y-4,x+28,y)}ctx.stroke()}ctx.restore();
 }
+function drawTree(x,y,scale=1){
+ const px=sx(x),py=sy(y);shadow(x,y+26,28*scale,9*scale,.28);ctx.save();ctx.translate(px,py);ctx.scale(scale,scale);
+ for(let k=0;k<3;k++){ctx.fillStyle=['#214b35','#2d6844','#3d7f4e'][k];ctx.beginPath();ctx.arc((k-1)*10,-22+k*4,23-k*3,0,Math.PI*2);ctx.fill();}
+ ctx.fillStyle='#62442e';ctx.fillRect(-5,-12,10,34);ctx.fillStyle='rgba(255,255,255,.12)';ctx.fillRect(-2,-10,3,28);ctx.restore();
+}
+function drawResourceDecor(){
+ const tm=performance.now()/1000;
+ if(typeof resources!=='undefined')for(const r of resources){if(!r.alive)continue;const px=sx(r.x),py=sy(r.y);ctx.save();ctx.translate(px,py);ctx.rotate(Math.sin(tm*1.2+r.x)*.06);ctx.shadowBlur=r.type==='ore'?10:3;ctx.shadowColor=r.type==='ore'?'#62efff':'#d8b26b';ctx.fillStyle=r.type==='ore'?'#367783':r.type==='wood'?'#68452d':'#747b7a';ctx.beginPath();ctx.moveTo(-16,10);ctx.lineTo(-10,-10);ctx.lineTo(2,-17);ctx.lineTo(17,-5);ctx.lineTo(12,11);ctx.closePath();ctx.fill();ctx.strokeStyle='rgba(230,255,255,.25)';ctx.stroke();ctx.restore();}
+ for(let i=0;i<18;i++){const x=-560+(i*271)%1120,y=-330+(i*193)%660;if(Math.hypot(x,y)>Math.max(island.rx,island.ry)*.8)continue;drawTree(x,y,.72+(i%4)*.08);}
+}
 function drawIsland(){
   ellipse(0,38,island.rx+70,island.ry+62,'rgba(2,19,25,.72)');ellipse(0,22,island.rx+48,island.ry+45,'#4f4639');ellipse(0,6,island.rx+28,island.ry+27,'#d3b06a');ellipse(0,-8,island.rx,island.ry,'#1f6948');ellipse(-240,-90,300,180,'rgba(91,176,101,.32)');ellipse(250,100,260,150,'rgba(24,105,74,.28)');ellipse(-110,-30,900,575,'#348c57');ellipse(110,-90,760,500,'#45a263');
   ctx.save();ctx.strokeStyle='rgba(235,210,143,.72)';ctx.lineWidth=18;ctx.beginPath();ctx.ellipse(sx(0),sy(-5),island.rx-32,island.ry-40,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(255,245,191,.34)';ctx.lineWidth=5;ctx.beginPath();ctx.ellipse(sx(0),sy(-8),island.rx-50,island.ry-58,0,0,Math.PI*2);ctx.stroke();ctx.strokeStyle='rgba(174,220,133,.24)';ctx.lineWidth=10;for(let i=0;i<18;i++){const x=-720+i*82,y=180+Math.sin(i*1.7)*95;ctx.beginPath();ctx.moveTo(sx(x),sy(y));ctx.quadraticCurveTo(sx(x+35),sy(y-22),sx(x+75),sy(y-4));ctx.stroke()}ctx.restore();
@@ -224,13 +234,22 @@ function drawPlayer(){
  ctx.restore();
 }
 function drawDecor(){
+ const tm=performance.now()/1000;
+ // Richer world dressing: layered foliage, grass tufts, stones and ambient particles.
+ ctx.save();
+ for(let i=0;i<95;i++){const x=-700+(i*173)%1400,y=-430+(i*97)%860;const wx=x+Math.sin(i*4.7)*28,wy=y+Math.cos(i*2.3)*22;if(Math.hypot(wx,wy)>Math.max(island.rx,island.ry)*.92)continue;const px=sx(wx),py=sy(wy);
+   ctx.globalAlpha=.18+.12*Math.sin(tm*.8+i);ctx.strokeStyle='#b6e0a0';ctx.lineWidth=2;ctx.beginPath();ctx.moveTo(px,py+7);ctx.quadraticCurveTo(px-3,py-3,px-5,py-8);ctx.moveTo(px+2,py+7);ctx.quadraticCurveTo(px+5,py-4,px+7,py-7);ctx.stroke();
+ }
+ for(let i=0;i<28;i++){const x=-600+(i*211)%1200,y=-360+(i*149)%720;if(Math.hypot(x,y)>Math.max(island.rx,island.ry)*.84)continue;const px=sx(x),py=sy(y);ctx.globalAlpha=.3;ctx.fillStyle='#53666b';ctx.beginPath();ctx.ellipse(px,py,13+(i%4)*3,8+(i%3)*2,-.3,0,Math.PI*2);ctx.fill();ctx.globalAlpha=.45;ctx.fillStyle='#8a9a98';ctx.beginPath();ctx.ellipse(px-3,py-3,6,3,-.3,0,Math.PI*2);ctx.fill();}
+ ctx.restore();
+}
   // subtle atmospheric depth: distant clouds, birds and fireflies
   ctx.save();ctx.globalAlpha=.16;
   for(let i=0;i<8;i++){const x=(i*347)%W,y=80+(i*83)%(H*.38);ctx.fillStyle='#fff';ctx.beginPath();ctx.ellipse(x,y,55,12,0,0,Math.PI*2);ctx.fill();ctx.beginPath();ctx.ellipse(x+35,y-5,38,10,0,0,Math.PI*2);ctx.fill()}
   ctx.restore();
 }
 function draw(){
-  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawWater();drawIsland();drawRuins();drawRareNodes();drawTreasures();
+  const ox=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0,oy=cameraShake>0?rnd(-cameraShake*7,cameraShake*7):0;cameraShake=Math.max(0,cameraShake-.045);ctx.save();ctx.translate(ox,oy);drawSky();drawDecor();drawResourceDecor();drawWater();drawIsland();drawRuins();drawRareNodes();drawTreasures();
   const objs=[];
   trees.forEach(t=>objs.push({y:t.y,fn:()=>drawTree(t)}));rocks.forEach(r=>objs.push({y:r.y,fn:()=>drawRock(r)}));
   buildings.forEach(b=>objs.push({y:b.y,fn:()=>drawBuildStructure(b)}));
