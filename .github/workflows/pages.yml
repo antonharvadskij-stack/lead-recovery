@@ -1,4 +1,5 @@
 name: Deploy NEVERENDING GAME
+# Static Vite pipeline
 on:
   push:
     branches: [main]
