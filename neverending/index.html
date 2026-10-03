@@ -59,7 +59,7 @@ window.addEventListener('unhandledrejection',function(e){
     <div class="pill">🪙 <b id="coins">100</b></div>
     <button class="pill menu" id="menu">☰</button>
   </div>
-  <div id="mission">🎯 Соберите 10 дерева</div>
+  <div id="zoneText">🏕️ Лагерь</div><div id="mission">🎯 Соберите 10 дерева</div>
   <div class="stats">
     <div class="stat"><div class="statline"><span>❤️ Здоровье</span><b id="hpText">100</b></div><div class="bar"><div id="hpFill" class="fill hp" style="width:100%"></div></div></div>
     <div class="stat"><div class="statline"><span>⚡ Энергия</span><b id="enText">100</b></div><div class="bar"><div id="enFill" class="fill en" style="width:100%"></div></div></div>
@@ -118,7 +118,7 @@ function onIsland(x,y){const dx=x/island.rx,dy=y/island.ry;return dx*dx+dy*dy<.9
 function spawn(){
   for(let i=0;i<95;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<180);trees.push({x,y,s:rnd(.8,1.25),hp:2+Math.floor(rnd(0,2)),seed:i})}
   for(let i=0;i<55;i++){let x,y;do{x=rnd(-1150,1150);y=rnd(-760,760)}while(!onIsland(x,y)||Math.hypot(x,y)<230);rocks.push({x,y,s:rnd(.75,1.25),hp:2})}
-  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);enemies.push({x,y,r:20,hp:3,max:3,spd:rnd(20,32),phase:rnd(0,6),alive:true,type:i%4===0?'brute':'raider'})}
+  for(let i=0;i<18;i++){let x,y;do{x=rnd(-1100,1100);y=rnd(-700,700)}while(!onIsland(x,y)||Math.hypot(x,y)<500);enemies.push({x,y,r:20,hp:i%4===0?7:3,max:i%4===0?7:3,spd:i%4===0?rnd(14,22):rnd(20,32),phase:rnd(0,6),alive:true,type:i%4===0?'brute':'raider',tier:1})}
   buildings.push({x:-170,y:70,type:'hut',built:true},{x:260,y:-160,type:'tower',built:true},{x:50,y:210,type:'camp',built:true})
 }
 spawn();
@@ -209,7 +209,7 @@ function updateMission(){
 function updateUI(){
   for(const [id,v] of [['wood',state.wood],['stone',state.stone],['coins',state.coins],['food',state.food],['hpText',Math.round(state.hp)],['enText',Math.round(state.en)],['huText',Math.round(state.hunger)],['level',state.level],['day',state.day],['kills',state.kills]])document.getElementById(id).textContent=v;
   document.getElementById('hpFill').style.width=state.hp+'%';document.getElementById('enFill').style.width=state.en+'%';document.getElementById('huFill').style.width=state.hunger+'%';
-  document.getElementById('pWood').textContent=state.wood;document.getElementById('pStone').textContent=state.stone;document.getElementById('pCoins').textContent=state.coins;document.getElementById('pTrees').textContent=state.trees;updateMission();
+  document.getElementById('pWood').textContent=state.wood;document.getElementById('pStone').textContent=state.stone;document.getElementById('pCoins').textContent=state.coins;document.getElementById('pTrees').textContent=state.trees;updateMission();if(document.getElementById('zoneText'))document.getElementById('zoneText').textContent=islandZone==='camp'?'🏕️ Лагерь':islandZone==='forest'?'🌲 Лес':'🌊 Побережье';
 }
 function input(){
   let x=joystick.x,y=joystick.y;if(keys.w||keys.arrowup)y-=1;if(keys.s||keys.arrowdown)y+=1;if(keys.a||keys.arrowleft)x-=1;if(keys.d||keys.arrowright)x+=1;
@@ -290,7 +290,7 @@ function doAttack(){
     if(e.alive&&dist(e,player)<95){
       e.hp-=state.damage+state.weapon*3;hit=true;e.x+=Math.cos(player.dir)*24;e.y+=Math.sin(player.dir)*24;
       burst(e.x,e.y,'#ffe07a',9);floatText(e.x,e.y-28,'УДАР','#fff1a4');cameraShake=.22;
-      if(e.hp<=0){e.alive=false;state.kills++;state.coins+=15;state.en=Math.min(state.maxEn,state.en+6);loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+15 🪙','#ffe27d');if(state.kills%3===0){state.level++;toast('⬆️ Уровень '+state.level)}else toast("+15 монет")}
+      if(e.hp<=0){e.alive=false;state.kills++;const reward=e.type==='brute'?35:15;state.coins+=reward;state.level=Math.max(1,1+Math.floor(state.kills/4));state.en=Math.min(state.maxEn,state.en+6);loot.push({x:e.x,y:e.y});burst(e.x,e.y,'#ffd45b',16);floatText(e.x,e.y-34,'+'+reward+' 🪙','#ffe27d');if(e.type==='brute')state.stone+=5;toast('⬆️ Уровень '+state.level+' · +'+reward+' монет')}
     }
   }
   if(!hit)toast('Враг слишком далеко');
