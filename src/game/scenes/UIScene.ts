@@ -46,19 +46,22 @@ export class UIScene extends Phaser.Scene {
 
     // Боевые действия находятся в отдельной нижней панели: кнопки никогда не перекрываются.
     const combatY = Math.max(110, H - 150);
-    this.contextBtn = this.add.container(W - 285, combatY).setDepth(250);
-    const cb=this.add.rectangle(0,0,210,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive();
+    this.contextBtn = this.add.container(W - 285, combatY).setSize(210, 62).setDepth(250).setInteractive({ useHandCursor: false });
+    const cb=this.add.rectangle(0,0,210,62,0x152b31,.96).setStrokeStyle(3,0xd8b66a,.85).setInteractive({ useHandCursor: false });
     const ct2=this.add.text(0,-7,"",{...FONT,fontFamily:"sans-serif",fontSize:"17px",align:"center"}).setOrigin(.5);
     const hint=this.add.text(0,17,"",{fontFamily:"sans-serif",fontSize:"11px",color:"#a9c3c7"}).setOrigin(.5);
     this.contextBtn.add([cb,ct2,hint]); this.contextBtn.setData("button",cb); this.contextBtn.setData("label",ct2); this.contextBtn.setData("hint",hint);
-    cb.on("pointerdown",()=>this.input_().context=true);
+    const triggerContext = () => { const i = this.input_(); i.context = true; };
+    this.contextBtn.on("pointerdown", triggerContext);
+    cb.on("pointerdown", triggerContext);
 
     this.joyBase=this.add.circle(0,0,60,0xffffff,.08).setStrokeStyle(3,0xffffff,.3).setVisible(false).setDepth(200);
     this.joyKnob=this.add.circle(0,0,26,0xffffff,.3).setVisible(false).setDepth(201);
-    const atk=this.add.circle(W-82,combatY,58,0xb8342a,.55).setStrokeStyle(4,0xffd27a,.7).setInteractive().setDepth(250);
+    const atk=this.add.circle(W-82,combatY,58,0xb8342a,.55).setStrokeStyle(4,0xffd27a,.7).setInteractive({ useHandCursor: false }).setDepth(250);
     this.add.text(atk.x,atk.y,"Удар",{...FONT,fontFamily:"sans-serif",fontSize:"20px"}).setOrigin(.5).setDepth(251);
-    atk.on("pointerdown",()=>this.input_().attack=true);
+    atk.on("pointerdown",()=>{ this.input_().attack=true; });
 
+    this.input.setTopOnly(false);
     this.input.on("pointerdown",(p:Phaser.Input.Pointer)=>{
       if(p.x<W*.5&&this.joyId===null){this.joyId=p.id;this.joyOrigin.set(p.x,p.y);this.joyBase.setPosition(p.x,p.y).setVisible(true);this.joyKnob.setPosition(p.x,p.y).setVisible(true);}
     });
