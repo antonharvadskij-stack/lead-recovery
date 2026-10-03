@@ -57,6 +57,14 @@ export class GameScene extends Phaser.Scene {
   private quest = { type: "gather", target: 10, progress: 0 } as { type: string; target: number; progress: number };
   private pickups!: Phaser.Physics.Arcade.Group;
   private pickupLabels: Phaser.GameObjects.Text[] = [];
+  private farmLevel = 1;
+  private workshopLevel = 1;
+  private wallLevel = 1;
+  private towerLevel = 1;
+  private nightOverlay!: Phaser.GameObjects.Rectangle;
+  private buildings: Phaser.GameObjects.GameObject[] = [];
+  private lastFarmTick = 0;
+  private lastTowerShot = 0;
 
   constructor() {
     super("Game");
@@ -76,6 +84,8 @@ export class GameScene extends Phaser.Scene {
     this.campLevel = 1;
     this.weaponLevel = 1;
     this.quest = { type: "gather", target: 10, progress: 0 };
+    this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
+    this.lastFarmTick = 0; this.lastTowerShot = 0;
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
@@ -105,6 +115,11 @@ export class GameScene extends Phaser.Scene {
       else if (t < 0.7) decor(K.rock, x, y, 26, true);
       else decor(K.bush, x, y, 20, false);
     }
+
+    // База: ферма, мастерская, стена и сторожевая башня вокруг лагеря.
+    this.createBaseBuildings(S / 2, S / 2);
+    this.nightOverlay = this.add.rectangle(this.scale.width / 2, this.scale.height / 2, this.scale.width, this.scale.height, 0x07152b, 0)
+      .setScrollFactor(0).setDepth(9000).setInteractive(false);
 
     // костёр + свет
     this.add.image(S / 2, S / 2, K.campfire).setDepth(S / 2 - 1);
@@ -154,7 +169,7 @@ export class GameScene extends Phaser.Scene {
   }
 
   private pushHud() {
-    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, quest: this.quest });
+    this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
   }
 
   private nextWave() {
@@ -243,6 +258,67 @@ export class GameScene extends Phaser.Scene {
     }
   }
 
+  private createBaseBuildings(cx: number, cy: number) {
+    const make = (x: number, y: number, type: string) => {
+      const g = this.add.graphics().setDepth(y - 2);
+      if (type === "farm") {
+        g.fillStyle(0x6b4829).fillRect(x - 48, y - 30, 96, 60);
+        g.lineStyle(5, 0x9b6a38).strokeRect(x - 48, y - 30, 96, 60);
+        for (let i = 0; i < 6; i++) g.fillStyle(0x6fa34b).fillRect(x - 38 + i * 15, y - 18, 7, 38);
+      } else if (type === "workshop") {
+        g.fillStyle(0x73513a).fillRect(x - 42, y - 34, 84, 68);
+        g.fillStyle(0xb04435).fillTriangle(x - 52, y - 34, x, y - 68, x + 52, y - 34);
+        g.fillStyle(0x33251c).fillRect(x - 12, y - 8, 24, 42);
+        g.fillStyle(0xd8b66a).fillCircle(x + 22, y - 12, 7);
+      } else if (type === "wall") {
+        g.fillStyle(0x7d848c);
+        for (let i = -3; i <= 3; i++) g.fillRect(x + i * 22 - 9, y - 15, 18, 30);
+        g.lineStyle(3, 0x4e5962).strokeRect(x - 78, y - 18, 156, 36);
+      } else {
+        g.fillStyle(0x6e747a).fillRect(x - 14, y - 72, 28, 72);
+        g.fillStyle(0x8f969d).fillCircle(x, y - 78, 26);
+        g.fillStyle(0xffc75a).fillCircle(x, y - 84, 7);
+      }
+      this.buildings.push(g);
+      return g;
+    };
+    make(cx - 155, cy + 30, "farm");
+    make(cx + 155, cy + 30, "workshop");
+    make(cx, cy + 165, "wall");
+    make(cx, cy - 150, "tower");
+    this.add.text(cx - 155, cy + 65, "ФЕРМА", { fontFamily: "sans-serif", fontSize: "13px", color: "#f0d9a0" }).setOrigin(0.5).setDepth(cy + 70);
+    this.add.text(cx + 155, cy + 65, "МАСТЕРСКАЯ", { fontFamily: "sans-serif", fontSize: "13px", color: "#f0d9a0" }).setOrigin(0.5).setDepth(cy + 70);
+  }
+
+  private upgradeBuilding(type: "farm" | "workshop" | "wall" | "tower") {
+    const level = this[type + "Level"];
+    const cost = { wood: 8 + level * 8, stone: 6 + level * 6, coins: 5 + level * 5 };
+    if (this.resources.wood < cost.wood || this.resources.stone < cost.stone || this.resources.coins < cost.coins) return;
+    this.resources.wood -= cost.wood; this.resources.stone -= cost.stone; this.resources.coins -= cost.coins;
+    (this[type + "Level"] as number)++;
+    this.pushHud();
+  }
+
+  private tickBaseAndNight(delta: number) {
+    const dayProgress = (this.dayTime % 120000) / 120000;
+    const night = dayProgress > 0.68 || dayProgress < 0.12;
+    this.nightOverlay.setAlpha(night ? 0.34 : Math.max(0, (dayProgress - 0.55) * 2.1));
+    if (this.time.now - this.lastFarmTick > Math.max(9000, 30000 - this.farmLevel * 2500)) {
+      this.lastFarmTick = this.time.now;
+      this.resources.food += this.farmLevel;
+      this.pushHud();
+    }
+    if (this.time.now - this.lastTowerShot > Math.max(700, 2400 - this.towerLevel * 180)) {
+      const target = this.enemies.find(e => Phaser.Math.Distance.Between(e.s.x, e.s.y, this.center.x, this.center.y) < 420);
+      if (target) {
+        this.lastTowerShot = this.time.now;
+        const line = this.add.line(0, 0, this.center.x, this.center.y - 150, target.s.x, target.s.y - 25, 0xffd36a, 0.9).setOrigin(0).setDepth(8000);
+        this.tweens.add({ targets: line, alpha: 0, duration: 180, onComplete: () => line.destroy() });
+        this.damageEnemy(target, 8 + this.towerLevel * 3, 0);
+      }
+    }
+  }
+
   private dropLoot(x: number, y: number, kind: EnemyKind) {
     const count = kind === "brute" ? 3 : 1 + Phaser.Math.Between(0, 1);
     for (let i = 0; i < count; i++) {
@@ -323,6 +399,7 @@ export class GameScene extends Phaser.Scene {
 
   override update(_time: number, delta: number) {
     this.tickSurvival(delta);
+    this.tickBaseAndNight(delta);
     const inp = (this.registry.get("input") ?? { x: 0, y: 0, attack: false, build: false, upgrade: false, eat: false }) as { x: number; y: number; attack: boolean; build?: boolean; upgrade?: boolean; eat?: boolean };
     if (inp.build) { inp.build = false; this.buildCamp(); }
     if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
