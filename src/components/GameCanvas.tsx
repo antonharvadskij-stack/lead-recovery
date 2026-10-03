@@ -6,7 +6,7 @@ export default function GameCanvas() {
     let game: any = null;
     let cancelled = false;
     (async () => {
-      const [{ default: P }, { createGameConfig }, { BootScene }, { PreloadScene }, { GameScene }, { UIScene }] = await Promise.all([
+      const [{ default: P0, ...PhaserNS }, { createGameConfig }, { BootScene }, { PreloadScene }, { GameScene }, { UIScene }] = await Promise.all([
         import("phaser"),
         import("@/game/config"),
         import("@/game/scenes/BootScene"),
@@ -14,6 +14,7 @@ export default function GameCanvas() {
         import("@/game/scenes/GameScene"),
         import("@/game/scenes/UIScene"),
       ]);
+      const P = P0 ?? (PhaserNS as any);
       if (cancelled || !ref.current) return;
       const config: any = createGameConfig(ref.current);
       config.type = P.AUTO;
