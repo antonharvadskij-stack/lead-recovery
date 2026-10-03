@@ -4,8 +4,8 @@ import { generateIsland } from "../assets/ProceduralTextures";
 import { WORLD_SIZE } from "../config";
 import { Platform } from "../platform/yandex";
 
-const ISLAND_R = 2380;
-const WALK_R = 2260;
+const ISLAND_R = 4920;
+const WALK_R = 4800;
 type Sprite = Phaser.Physics.Arcade.Sprite;
 
 const STATS: Record<EnemyKind, { hp: number; speed: number; dmg: number; range: number; cd: number; blood: number[] }> = {
@@ -122,9 +122,9 @@ export class GameScene extends Phaser.Scene {
       }
       return img;
     };
-    for (let i = 0; i < 62; i++) {
+    for (let i = 0; i < 240; i++) {
       const a = rng.frac() * Math.PI * 2;
-      const d = 230 + Math.sqrt(rng.frac()) * 820;
+      const d = 260 + Math.sqrt(rng.frac()) * 4400;
       const x = S / 2 + Math.cos(a) * d;
       const y = S / 2 + Math.sin(a) * d;
       const t = rng.frac();
