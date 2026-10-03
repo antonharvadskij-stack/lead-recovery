@@ -225,6 +225,36 @@ export class GameScene extends Phaser.Scene {
     this.pushHud();
   }
 
+  private leaveTrace() {
+    if (this.over) return;
+    const now = this.time.now;
+    if (this.lastMemoryAction && now - this.lastAttack < 250) return;
+    this.lastAttack = now;
+    const x = this.player.x;
+    const y = this.player.y;
+    const trace = this.add.circle(x, y, 13, 0x9ad7ff, 0.55).setDepth(6);
+    trace.setStrokeStyle(2, 0xe7fbff, 0.8);
+    trace.setData("createdAt", now);
+    this.tweens.add({ targets: trace, alpha: 0.18, scale: 1.7, duration: 900 });
+    this.time.delayedCall(6500, () => trace.destroy());
+    let influenced = 0;
+    for (const e of this.enemies) {
+      const d = Phaser.Math.Distance.Between(e.s.x, e.s.y, x, y);
+      if (d < 190) {
+        e.memory += 1;
+        e.pacifiedUntil = now + 2600;
+        e.s.setTint(0x9ad7ff);
+        this.time.delayedCall(700, () => { if (e.s.active) e.s.clearTint(); });
+        influenced++;
+      }
+    }
+    this.memory.steps++;
+    this.worldMood += influenced ? 2 : 1;
+    this.lastMemoryAction = influenced
+      ? "След оставил отпечаток. Ближайшие существа его почувствовали."
+      : "Ты оставил след. Мир его запомнил.";
+  }
+
   private playerAttack() {
     const now = this.time.now;
     if (now - this.lastAttack < 380 || this.over) return;
