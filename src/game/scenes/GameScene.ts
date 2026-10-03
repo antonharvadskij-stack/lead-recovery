@@ -33,6 +33,8 @@ function ensureAnims(scene: Phaser.Scene, key: string) {
 }
 
 export class GameScene extends Phaser.Scene {
+  private biomeObjects: Phaser.GameObjects.GameObject[] = [];
+
 
   private player!: Sprite;
   private pShadow!: Phaser.GameObjects.Image;
@@ -299,14 +301,14 @@ export class GameScene extends Phaser.Scene {
 
   private createExplorationZones(cx: number, cy: number, rng: Phaser.Math.RandomDataGenerator) {
     const zones = [
-      { id: "swamp", x: cx, y: cy - 1500, r: 330, name: "ТУМАННЫЕ БОЛОТА", tint: 0x536f68 },
-      { id: "forest", x: cx + 1120, y: cy - 1080, r: 320, name: "ЧЁРНЫЙ ЛЕС", tint: 0x2f4b36 },
-      { id: "coast", x: cx + 1550, y: cy, r: 340, name: "КАМЕННЫЙ БЕРЕГ", tint: 0x827b70 },
-      { id: "ash", x: cx + 1050, y: cy + 1150, r: 320, name: "ПЕПЕЛЬНЫЕ ПУСТОШИ", tint: 0x675653 },
-      { id: "fields", x: cx, y: cy + 1550, r: 350, name: "ЗАРОСШИЕ ПОЛЯ", tint: 0x718a4d },
-      { id: "rot", x: cx - 1100, y: cy + 1100, r: 330, name: "ГНИЮЩЕЕ БОЛОТО", tint: 0x405950 },
-      { id: "ruins", x: cx - 1550, y: cy, r: 340, name: "СТАРЫЕ РУИНЫ", tint: 0x68636f },
-      { id: "twisted", x: cx - 1100, y: cy - 1100, r: 325, name: "ИСКАЖЁННАЯ РОЩА", tint: 0x514367 },
+      { id: "swamp", x: cx, y: cy - 1500, r: 330, name: "ТУМАННЫЕ БОЛОТА", tint: 0x536f68, night: "Туман усиливается", resource: "Лекарственные травы" },
+      { id: "forest", x: cx + 1120, y: cy - 1080, r: 320, name: "ЧЁРНЫЙ ЛЕС", tint: 0x2f4b36, night: "Хищники выходят", resource: "Чёрная древесина" },
+      { id: "coast", x: cx + 1550, y: cy, r: 340, name: "КАМЕННЫЙ БЕРЕГ", tint: 0x827b70, night: "Прилив приносит добычу", resource: "Соляные кристаллы" },
+      { id: "ash", x: cx + 1050, y: cy + 1150, r: 320, name: "ПЕПЕЛЬНЫЕ ПУСТОШИ", tint: 0x675653, night: "Пепел скрывает следы", resource: "Обугленная руда" },
+      { id: "fields", x: cx, y: cy + 1550, r: 350, name: "ЗАРОСШИЕ ПОЛЯ", tint: 0x718a4d, night: "Ночные стаи ищут пищу", resource: "Дикие корни" },
+      { id: "rot", x: cx - 1100, y: cy + 1100, r: 330, name: "ГНИЮЩЕЕ БОЛОТО", tint: 0x405950, night: "Болото становится ядовитым", resource: "Ядовитая слизь" },
+      { id: "ruins", x: cx - 1550, y: cy, r: 340, name: "СТАРЫЕ РУИНЫ", tint: 0x68636f, night: "Слышны чужие шаги", resource: "Древние детали" },
+      { id: "twisted", x: cx - 1100, y: cy - 1100, r: 325, name: "ИСКАЖЁННАЯ РОЩА", tint: 0x514367, night: "Мир начинает искажаться", resource: "Искажённый материал" },
     ];
     for (const z of zones) {
       const g = this.add.graphics().setDepth(-2);
@@ -318,25 +320,28 @@ export class GameScene extends Phaser.Scene {
 
       const chestCount = z.id === "ruins" ? 6 : 4;
       for (let i = 0; i < chestCount; i++) {
-        const a = rng.frac() * Math.PI * 2;
-        const rr = 60 + rng.frac() * (z.r - 85);
+        const a = rng.frac() * Math.PI * 2, rr = 60 + rng.frac() * (z.r - 85);
         this.createChest(z.x + Math.cos(a) * rr, z.y + Math.sin(a) * rr, z.id, i);
       }
 
-      for (let i = 0; i < 9; i++) {
-        const a = rng.frac() * Math.PI * 2;
-        const rr = 45 + rng.frac() * (z.r - 65);
+      const label = this.add.text(z.x, z.y + z.r - 30, z.resource, {
+        fontFamily: "sans-serif", fontSize: "13px", color: "#d7d1b6", stroke: "#111711", strokeThickness: 4
+      }).setOrigin(0.5).setAlpha(0.75).setDepth(1);
+      this.biomeObjects.push(label);
+
+      for (let i = 0; i < 10; i++) {
+        const a = rng.frac() * Math.PI * 2, rr = 45 + rng.frac() * (z.r - 65);
         const px = z.x + Math.cos(a) * rr, py = z.y + Math.sin(a) * rr;
-        if (z.id === "forest" || z.id === "twisted") {
-          this.add.rectangle(px, py, 18, 42, z.tint, 0.48).setAngle(rng.frac() * 20 - 10).setDepth(py);
-        } else if (z.id === "ruins") {
-          this.add.rectangle(px, py, 34, 18, z.tint, 0.48).setAngle(rng.frac() * 180).setDepth(py);
-        } else {
-          this.add.circle(px, py, 8 + rng.frac() * 10, z.tint, 0.38).setDepth(py);
-        }
+        const obj = z.id === "forest" || z.id === "twisted"
+          ? this.add.rectangle(px, py, 18, 42, z.tint, 0.48).setAngle(rng.frac() * 20 - 10).setDepth(py)
+          : z.id === "ruins"
+            ? this.add.rectangle(px, py, 34, 18, z.tint, 0.48).setAngle(rng.frac() * 180).setDepth(py)
+            : this.add.circle(px, py, 8 + rng.frac() * 10, z.tint, 0.38).setDepth(py);
+        this.biomeObjects.push(obj);
       }
     }
   }
+
   private createChest(x: number, y: number, zone: string, index: number) {
     const body = this.add.rectangle(0, 5, 38, 28, 0x6b4227).setStrokeStyle(3, 0xd2a65c);
     const lid = this.add.rectangle(0, -10, 42, 12, 0x9b6230).setStrokeStyle(2, 0xe0c078);
@@ -479,12 +484,30 @@ export class GameScene extends Phaser.Scene {
     this.resources.food--; this.hunger = Math.min(100, this.hunger + 28); this.pushHud();
   }
 
+  private updateBiomeEffects(isNight: boolean) {
+    const px = this.player.x, py = this.player.y;
+    const biomes = [
+      { x: this.worldCenterX, y: this.worldCenterY - 1500, r: 330, nightSanity: 0.20 },
+      { x: this.worldCenterX + 1120, y: this.worldCenterY - 1080, r: 320, nightSanity: 0.10 },
+      { x: this.worldCenterX + 1550, y: this.worldCenterY, r: 340, nightSanity: 0.02 },
+      { x: this.worldCenterX + 1050, y: this.worldCenterY + 1150, r: 320, nightSanity: 0.08 },
+      { x: this.worldCenterX, y: this.worldCenterY + 1550, r: 350, nightSanity: 0.04 },
+      { x: this.worldCenterX - 1100, y: this.worldCenterY + 1100, r: 330, nightSanity: 0.16 },
+      { x: this.worldCenterX - 1550, y: this.worldCenterY, r: 340, nightSanity: 0.06 },
+      { x: this.worldCenterX - 1100, y: this.worldCenterY - 1100, r: 325, nightSanity: 0.30 },
+    ];
+    const b = biomes.find(z => Phaser.Math.Distance.Between(px, py, z.x, z.y) < z.r);
+    if (b && isNight) this.sanity = Math.max(0, this.sanity - b.nightSanity * 0.001);
+    this.biomeObjects.forEach(o => { if ("setAlpha" in o) (o as Phaser.GameObjects.GameObject & { setAlpha:(v:number)=>void }).setAlpha(isNight ? 0.68 : 1); });
+  }
+
   private tickSurvival(delta: number) {
     this.dayTime += delta;
     const isNight = (this.dayTime % 120000) > 72000;
     this.hunger = Math.max(0, this.hunger - delta / 8500);
     if (this.hunger < 35) this.sanity = Math.max(0, this.sanity - delta / 7000);
     if (isNight) this.sanity = Math.max(0, this.sanity - delta / 9500);
+    this.updateBiomeEffects(isNight);
     else if (this.hunger > 60 && this.hp > 60) this.sanity = Math.min(100, this.sanity + delta / 18000);
     if (this.hunger <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 1700);
     if (this.sanity <= 0 && this.time.now > this.invuln) this.hp = Math.max(0, this.hp - delta / 2600);
