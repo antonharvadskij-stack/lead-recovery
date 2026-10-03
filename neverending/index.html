@@ -84,7 +84,7 @@ function saveGame(){try{localStorage.setItem("last_island_save",JSON.stringify({
 function loadGame(){try{const z=JSON.parse(localStorage.getItem("last_island_save")||"null");if(z?.state)Object.assign(state,z.state);if(z?.player){player.x=z.player.x;player.y=z.player.y}}catch(e){}}
 const player={x:0,y:0,r:18,dir:0,attack:0,hit:0};
 loadGame();
-const cam={x:0,y:0};
+const cam={x:player.x,y:player.y};
 const world={w:3000,h:2200};
 const island={cx:0,cy:0,rx:1250,ry:860};
 const trees=[],rocks=[],enemies=[],loot=[],buildings=[];
@@ -210,7 +210,7 @@ function update(dt){
   state.hunger=Math.max(0,state.hunger-dt*.022);
   if(state.hunger<20)state.en=Math.max(0,state.en-dt*.045);
   player.x=Math.max(-island.rx+60,Math.min(island.rx-60,player.x));player.y=Math.max(-island.ry+60,Math.min(island.ry-60,player.y));
-  cam.x+=(player.x-cam.x)*Math.min(1,dt*7);cam.y+=(player.y-cam.y)*Math.min(1,dt*7);
+  // Camera and every world object use the same world coordinates.\n  // Locking the camera to the player prevents trees, rocks, enemies, loot and buildings from appearing screen-fixed.\n  cam.x=player.x;cam.y=player.y;
   for(const e of enemies){if(!e.alive)continue;const d=dist(e,player);const reach=e.type==='brute'?58:50;if(d<380){const a=Math.atan2(player.y-e.y,player.x-e.x);if(d>reach-4){e.x+=Math.cos(a)*e.spd*dt;e.y+=Math.sin(a)*e.spd*dt}if(d<reach&&Math.random()<dt*(e.type==='brute'?.52:.72)){const dmg=e.type==='brute'?6:3;state.hp=Math.max(0,state.hp-dmg);burst(player.x,player.y,'#ff6670',5);floatText(player.x,player.y-28,'-'+dmg,'#ff8790');cameraShake=.28}}}
   // Hostile creatures slowly repopulate the island, keeping exploration meaningful.
   if(worldTime>0&&Math.floor(worldTime)%35===0&&Math.floor(worldTime-dt)%35!==0){
