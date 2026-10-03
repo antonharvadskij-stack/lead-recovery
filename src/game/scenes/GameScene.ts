@@ -68,6 +68,10 @@ export class GameScene extends Phaser.Scene {
   private chests: Phaser.GameObjects.Container[] = [];
   private discoveredZones = new Set<string>();
   private workshopCrafts = 0;
+  private memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 };
+  private lastMemoryAction = "";
+  private worldMood = 0;
+  private echoGroup!: Phaser.GameObjects.Group;
 
   constructor() {
     super("Game");
@@ -90,6 +94,7 @@ export class GameScene extends Phaser.Scene {
     this.farmLevel = 1; this.workshopLevel = 1; this.wallLevel = 1; this.towerLevel = 1;
     this.lastFarmTick = 0; this.lastTowerShot = 0;
     this.chests = []; this.discoveredZones = new Set<string>(); this.workshopCrafts = 0;
+    this.memory = { steps: 0, rescues: 0, scars: 0, echoes: 0 }; this.lastMemoryAction = ""; this.worldMood = 0;
     const S = WORLD_SIZE;
     const rng = new Phaser.Math.RandomDataGenerator(["neverending"]);
     generateIsland(this, ISLAND_R, () => rng.frac());
@@ -151,6 +156,7 @@ export class GameScene extends Phaser.Scene {
     this.events.on("update", () => pGlow.setPosition(this.player.x, this.player.y - 30));
 
     this.enemyGroup = this.physics.add.group();
+    this.echoGroup = this.add.group();
     this.pickups = this.physics.add.group();
     this.physics.add.overlap(this.player, this.pickups, (_p, obj) => this.collectPickup(obj as Phaser.Physics.Arcade.Sprite), undefined, this);
     this.physics.add.collider(this.player, obstacles);
@@ -168,13 +174,15 @@ export class GameScene extends Phaser.Scene {
     cam.fadeIn(500);
 
     this.keys = this.input.keyboard!.addKeys("W,A,S,D,UP,DOWN,LEFT,RIGHT,SPACE,J") as GameScene["keys"];
-    this.registry.set("input", { x: 0, y: 0, attack: false });
+    this.registry.set("input", { x: 0, y: 0, attack: false, context: false });
     this.pushHud();
     this.time.delayedCall(800, () => this.nextWave());
     Platform.gameReady();
   }
 
   private pushHud() {
+    const context = this.getContextAction();
+    this.registry.set("memory", { ...this.memory, mood: this.worldMood, last: this.lastMemoryAction, context });
     this.registry.set("hud", { hp: this.hp, maxHp: 100, wave: this.wave, kills: this.kills, alive: this.enemies.length, over: this.over, wood: this.resources.wood, stone: this.resources.stone, food: this.resources.food, coins: this.resources.coins, hunger: this.hunger, day: this.day, campLevel: this.campLevel, weaponLevel: this.weaponLevel, farmLevel: this.farmLevel, workshopLevel: this.workshopLevel, wallLevel: this.wallLevel, towerLevel: this.towerLevel, quest: this.quest });
   }
 
@@ -262,6 +270,43 @@ export class GameScene extends Phaser.Scene {
       }
       this.pushHud();
     }
+  }
+
+  private getContextAction() {
+    const nearbyChest = this.chests.find(c => !c.getData("opened") && Phaser.Math.Distance.Between(c.x, c.y, this.player.x, this.player.y) < 105);
+    if (nearbyChest) return { id: "chest", label: "ОСМОТРЕТЬ НАХОДКУ", hint: "Мир оставит это в памяти" };
+    const nearbyEnemy = this.enemies.find(e => Phaser.Math.Distance.Between(e.s.x, e.s.y, this.player.x, this.player.y) < 120);
+    if (nearbyEnemy) return { id: "observe", label: "НАБЛЮДАТЬ", hint: "Изучи поведение существа" };
+    if (Phaser.Math.Distance.Between(this.center.x, this.center.y, this.player.x, this.player.y) < 150)
+      return { id: "camp", label: "ОСТАВИТЬ СЛЕД", hint: "Измени состояние мира" };
+    return { id: "mark", label: "ЗАПОМНИТЬ МЕСТО", hint: "Оставь здесь память" };
+  }
+
+  private contextAction() {
+    const a = this.getContextAction();
+    if (a.id === "chest") {
+      const c = this.chests.find(x => !x.getData("opened") && Phaser.Math.Distance.Between(x.x, x.y, this.player.x, this.player.y) < 105);
+      if (c) { this.openChest(c); this.memory.echoes++; this.lastMemoryAction = "Ты забрал находку. Мир это запомнил."; }
+    } else if (a.id === "observe") {
+      this.memory.steps++;
+      this.worldMood += 1;
+      this.lastMemoryAction = "Ты наблюдал. Теперь существа могут вести себя иначе.";
+    } else if (a.id === "camp") {
+      this.memory.rescues++;
+      this.worldMood += 2;
+      this.lastMemoryAction = "Ты оставил след у костра. Это станет частью истории.";
+      const e = this.add.circle(this.player.x, this.player.y - 30, 12, 0xffd36a, 0.8).setDepth(7000);
+      this.echoGroup.add(e);
+      this.tweens.add({ targets: e, scale: 3.2, alpha: 0, duration: 1000, onComplete: () => e.destroy() });
+    } else {
+      this.memory.scars++;
+      this.worldMood -= 1;
+      this.lastMemoryAction = "Место отмечено. Последствия появятся позже.";
+      const e = this.add.circle(this.player.x, this.player.y - 20, 9, 0x8fd3ff, 0.7).setDepth(7000);
+      this.echoGroup.add(e);
+      this.tweens.add({ targets: e, scale: 2.5, alpha: 0, duration: 800, onComplete: () => e.destroy() });
+    }
+    this.pushHud();
   }
 
   private createExplorationZones(cx: number, cy: number, rng: Phaser.Math.RandomDataGenerator) {
@@ -454,12 +499,14 @@ export class GameScene extends Phaser.Scene {
 
   override update(_time: number, delta: number) {
     this.tickSurvival(delta);
+    if (Math.abs(this.player.body?.velocity.x ?? 0) + Math.abs(this.player.body?.velocity.y ?? 0) > 5) this.memory.steps += delta / 1000;
     this.tickBaseAndNight(delta);
     const inp = (this.registry.get("input") ?? { x: 0, y: 0, attack: false, build: false, upgrade: false, eat: false }) as { x: number; y: number; attack: boolean; build?: boolean; upgrade?: boolean; eat?: boolean };
     if (inp.build) { inp.build = false; this.buildCamp(); }
     if (inp.upgrade) { inp.upgrade = false; this.upgradeWeapon(); }
     if (inp.eat) { inp.eat = false; this.eatFood(); }
     if ((inp as any).craft) { (inp as any).craft = false; this.craftAtWorkshop(); }
+    if ((inp as any).context) { (inp as any).context = false; this.contextAction(); }
     for (const type of ["farm","workshop","wall","tower"] as const) {
       if ((inp as any)[type]) { (inp as any)[type] = false; this.upgradeBuilding(type); }
     }
