@@ -607,6 +607,36 @@ export function generateIsland(scene: Phaser.Scene, radius: number, rng: () => n
         if (j === 0) c.moveTo(px, py); else c.lineTo(px, py);
       }
       c.closePath(); c.fill(); c.restore();
+
+      // Уникальные детали каждого биома: деревья, руины, камни, трещины и болотные пятна.
+      const seed = Math.abs(Math.floor((b.x + 1.7) * 1000 + (b.y + 1.3) * 777));
+      for (let k = 0; k < 70; k++) {
+        const a = ((seed + k * 137) % 628) / 100;
+        const rr = (0.16 + ((seed + k * 71) % 76) / 100) * Math.min(r * b.rx, r * b.ry);
+        const px = bx + Math.cos(a) * rr, py = by + Math.sin(a) * rr;
+        c.save();
+        if (b.x > 0.3 && b.y < -0.2) {
+          c.fillStyle = "rgba(18,45,25,0.72)"; c.beginPath(); c.arc(px,py,18+k%12,0,TAU); c.fill();
+          c.fillStyle = "rgba(8,28,15,0.72)"; c.fillRect(px-5,py-34,10,42);
+        } else if (b.x < -0.2 && b.y < -0.2) {
+          c.strokeStyle = "rgba(92,58,120,0.82)"; c.lineWidth = 8; c.beginPath(); c.moveTo(px-15,py+20); c.quadraticCurveTo(px+20,py,px-4,py-32); c.stroke();
+        } else if (b.x < -0.3 && Math.abs(b.y) < 0.2) {
+          c.fillStyle = "rgba(58,55,62,0.82)"; c.fillRect(px-26,py-18,52,36);
+          c.fillStyle = "rgba(150,140,125,0.5)"; c.fillRect(px-18,py-10,36,7);
+        } else if (b.x > 0.5 && Math.abs(b.y) < 0.2) {
+          c.fillStyle = "rgba(70,68,63,0.68)"; c.beginPath(); c.arc(px,py,10+k%10,0,TAU); c.fill();
+        } else if (b.y > 0.3 && b.x > 0.15) {
+          c.strokeStyle = "rgba(55,40,38,0.68)"; c.lineWidth = 5; c.beginPath(); c.moveTo(px-18,py+9); c.lineTo(px+14,py-12); c.stroke();
+        } else if (b.y > 0.3 && b.x < -0.15) {
+          c.fillStyle = "rgba(26,63,52,0.62)"; c.beginPath(); c.ellipse(px,py,24,10,k,0,TAU); c.fill();
+          c.fillStyle = "rgba(83,112,76,0.5)"; c.beginPath(); c.arc(px+6,py-3,6,0,TAU); c.fill();
+        } else if (Math.abs(b.x) < 0.2 && b.y > 0.4) {
+          c.strokeStyle = "rgba(84,105,40,0.7)"; c.lineWidth = 3; c.beginPath(); c.moveTo(px,py+14); c.lineTo(px-6,py-14); c.stroke();
+        } else {
+          c.fillStyle = "rgba(116,142,126,0.42)"; c.beginPath(); c.ellipse(px,py,28,12,0,0,TAU); c.fill();
+        }
+        c.restore();
+      }
     }
     // layered shoreline foam and terrain detail
     c.strokeStyle = "rgba(255,245,205,.18)"; c.lineWidth = 5;
